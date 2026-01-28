@@ -3,6 +3,7 @@ package cn.cikian.shop.sys.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -26,7 +27,8 @@ import java.util.List;
  */
 
 @Data
-public class SysUser implements Serializable, UserDetails {
+@TableName("sys_user")
+public class SysUser implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     /**
@@ -107,8 +109,4 @@ public class SysUser implements Serializable, UserDetails {
      */
     private String lastLoginIp;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
 }

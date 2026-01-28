@@ -1,12 +1,14 @@
 package cn.cikian.shop.core.config;
 
 
-import cn.cikian.shop.core.security.JwtAccessDeniedHandler;
+import cn.cikian.shop.core.security.AccessDeniedHandlerImpl;
 import cn.cikian.shop.core.security.JwtAuthenticationEntryPoint;
 import cn.cikian.shop.core.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -20,7 +22,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
@@ -43,11 +47,22 @@ import java.util.List;
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    private final JwtAuthenticationEntryPoint unauthorizedHandler;
-    private final JwtAccessDeniedHandler accessDeniedHandler;
-    private final UserDetailsService userDetailsService;
-    private final LogoutHandler logoutHandler;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthFilter;
+    @Autowired
+    private JwtAuthenticationEntryPoint unauthorizedHandler;
+    @Autowired
+    private AccessDeniedHandlerImpl accessDeniedHandler;
+    @Autowired
+    @Lazy
+    private UserDetailsService userDetailsService;
+    @Autowired
+    private LogoutHandler logoutHandler;
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder(12);
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -57,12 +72,6 @@ public class SecurityConfig {
 
                 // 配置 CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // 配置异常处理
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(unauthorizedHandler)
-                        .accessDeniedHandler(accessDeniedHandler)
-                )
 
                 // 配置授权规则
                 .authorizeHttpRequests(auth -> auth
@@ -136,6 +145,11 @@ public class SecurityConfig {
 
                 // 添加 JWT 过滤器
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                // 配置异常处理
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler)
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
 
                 // 配置登出
                 .logout(logout -> logout
@@ -158,18 +172,16 @@ public class SecurityConfig {
 
         // 在 Spring Security 6.x 中，推荐通过构造器或 setter 设置
         authProvider.setUserDetailsService(userDetailsService);
-//        authProvider.setPasswordEncoder(passwordEncoder);
+        authProvider.setPasswordEncoder(passwordEncoder());
+
+        // 设置为false，不隐藏用户不存在异常，这样可以在JwtAuthenticationEntryPoint中区分不同的异常
+        authProvider.setHideUserNotFoundExceptions(false);
 
         // Spring Security 6.x 默认不隐藏用户不存在异常
         // 如果还需要配置，可以这样：
         authProvider.setUserDetailsPasswordService(null);
 
         return authProvider;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12); // 提高安全强度
     }
 
     @Bean

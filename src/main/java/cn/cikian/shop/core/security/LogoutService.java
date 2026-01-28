@@ -1,6 +1,6 @@
 package cn.cikian.shop.core.security;
 
-import cn.cikian.shop.utils.JwtTokenUtil;
+import cn.cikian.shop.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import org.springframework.util.StringUtils;
 @Service
 @RequiredArgsConstructor
 public class LogoutService implements LogoutHandler {
-    private final JwtTokenUtil jwtTokenUtil;
+    private final JwtUtil jwtUtil;
     // 如果实现了token黑名单，可以在这里注入
 
     @Override
@@ -44,8 +44,8 @@ public class LogoutService implements LogoutHandler {
 
         // 可以将token添加到黑名单
         if (StringUtils.hasText(jwt)) {
-            String username = jwtTokenUtil.getUsernameFromToken(jwt);
-            log.info("用户登出: {}", username);
+            // String username = jwtUtil.getUsernameFromToken(jwt);
+            // log.info("用户登出: {}", username);
 
             // TODO: 实现token黑名单机制
             // tokenBlacklistService.blacklistToken(jwt, username);

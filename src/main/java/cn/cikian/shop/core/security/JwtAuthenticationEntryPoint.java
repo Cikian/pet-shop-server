@@ -45,6 +45,15 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         body.put("path", request.getServletPath());
         body.put("timestamp", System.currentTimeMillis());
 
+        // 根据异常类型返回具体的错误消息
+        if (authException instanceof org.springframework.security.core.userdetails.UsernameNotFoundException) {
+            // 使用UserDetailsServiceImpl中定义的具体消息
+            body.put("message", authException.getMessage());
+        } else if (authException instanceof org.springframework.security.authentication.BadCredentialsException) {
+            // 密码错误
+            body.put("message", "密码错误");
+        }
+
         // 如果是凭证过期，可以返回特定消息
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {

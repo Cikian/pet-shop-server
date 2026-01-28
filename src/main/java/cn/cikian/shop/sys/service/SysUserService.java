@@ -3,6 +3,7 @@ package cn.cikian.shop.sys.service;
 import cn.cikian.shop.sys.entity.SysUser;
 import cn.cikian.shop.sys.entity.dto.RegisterRequest;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface SysUserService {
     /**
@@ -11,8 +12,6 @@ public interface SysUserService {
      * @return
      */
     SysUser getByUsername(String username);
-
-    UserDetails loadUserByUsername(String username);
 
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);

@@ -1,7 +1,13 @@
 package cn.cikian.shop.service;
 
+import cn.cikian.shop.sys.entity.SysRole;
 import cn.cikian.shop.sys.entity.SysUser;
+import cn.cikian.shop.sys.entity.SysUserRole;
+import cn.cikian.shop.sys.entity.dto.LoginUser;
+import cn.cikian.shop.sys.mapper.SysRoleMapper;
 import cn.cikian.shop.sys.mapper.SysUserMapper;
+import cn.cikian.shop.sys.mapper.SysUserRoleMapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,37 +40,42 @@ import java.util.stream.Collectors;
 public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private SysUserMapper userMapper;
+    @Autowired
+    private SysRoleMapper roleMapper;
+    @Autowired
+    private SysUserRoleMapper userRoleMapper;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("加载用户: {}", username);
 
-        SysUser user = userMapper.findByUsername(username);
+        LambdaQueryWrapper<SysUser> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(SysUser::getUsername, username);
+        SysUser user = userMapper.selectOne(lqw);
         if (user == null) {
             throw new UsernameNotFoundException("用户不存在: " + username);
         }
 
         // 检查用户状态
-        if (user.getStatus() == 1) {
+        if (user.getStatus() != null && user.getStatus() == 1) {
             throw new UsernameNotFoundException("用户已被禁用");
         }
 
-        if (user.getStatus() == 2) {
+        if (user.getStatus() != null && user.getStatus() == 2) {
             throw new UsernameNotFoundException("用户已被锁定");
         }
 
         // 获取用户权限
-        Collection<? extends GrantedAuthority> authorities = getAuthorities(user);
+        // Collection<? extends GrantedAuthority> authorities = getAuthorities(user);
+        LambdaQueryWrapper<SysUserRole> lqwRole = new LambdaQueryWrapper<>();
+        lqwRole.eq(SysUserRole::getUserId, user.getId());
+        List<SysUserRole> sysUserRoles = userRoleMapper.selectList(lqwRole);
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .authorities(authorities)
-                .accountExpired(false)
-                .accountLocked(user.getStatus() == 2)
-                .credentialsExpired(false)
-                .disabled(user.getStatus() == 1)
-                .build();
+        List<String> rolesString = sysUserRoles.stream().map(SysUserRole::getRoleKey).distinct().toList();
+
+        LoginUser loginUser = new LoginUser(user);
+        loginUser.setPermissions(rolesString);
+        return loginUser;
     }
 
     /**

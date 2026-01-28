@@ -1,34 +1,31 @@
 package cn.cikian.shop.sys.controller;
 
+import cn.cikian.shop.core.utils.RedisCache;
 import cn.cikian.shop.sys.entity.SysUser;
 import cn.cikian.shop.sys.entity.dto.LoginRequest;
+import cn.cikian.shop.sys.entity.dto.LoginUser;
 import cn.cikian.shop.sys.entity.dto.RegisterRequest;
 import cn.cikian.shop.sys.entity.vo.LoginResponse;
 import cn.cikian.shop.sys.entity.vo.Result;
 import cn.cikian.shop.sys.entity.vo.UserVO;
 import cn.cikian.shop.sys.service.SysUserService;
-import cn.cikian.shop.utils.JwtTokenUtil;
+import cn.cikian.shop.utils.JwtUtil;
+import com.alibaba.fastjson.JSONObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -44,10 +41,20 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private RedisCache redisCache;
     @Autowired
     private SysUserService userService;
+
+    @RequestMapping("/hello")
+    @PreAuthorize("hasAuthority('test')")
+    public String hello(){
+        return "hello";
+    }
+
 
     @PostMapping("/login")
     public Result<LoginResponse> login(
@@ -59,22 +66,28 @@ public class AuthController {
         // 验证码验证（如果需要）
         // validateCaptcha(loginRequest.getCaptchaKey(), loginRequest.getCaptcha());
 
-        // 认证用户
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        // 认证用户
+        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+
+        if (Objects.isNull(authenticate)) {
+            throw new RuntimeException("用户名或密码错误！");
+        }
+
+        // SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // 获取用户详情
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        LoginUser userDetails = (LoginUser) authenticate.getPrincipal();
+
+        // 使用userid生成token
+        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+        String userId = loginUser.getUser().getId().toString();
+        // authenticate存入redis
+        redisCache.setCacheObject("login:" + userId, loginUser);
 
         // 生成token
-        String accessToken = jwtTokenUtil.generateAccessToken(userDetails);
-        String refreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
+        String accessToken = JwtUtil.createJWT(JSONObject.toJSONString(userDetails));
 
         // 获取用户信息
         SysUser user = userService.getByUsername(loginRequest.getUsername());
@@ -92,9 +105,7 @@ public class AuthController {
         // 构建响应
         LoginResponse loginResponse = LoginResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .tokenType("Bearer")
-                .expiresIn(jwtTokenUtil.getExpirationDateFromToken(accessToken).getTime())
                 .user(userVO)
                 .authorities(authorities)
                 .build();
@@ -121,43 +132,6 @@ public class AuthController {
         return Result.ok(userVO, "注册成功");
     }
 
-    @PostMapping("/refresh")
-    public Result<Map<String, String>> refreshToken(
-            @RequestHeader("Authorization") String authHeader) {
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return Result.error(400, "无效的token");
-        }
-
-        String refreshToken = authHeader.substring(7);
-
-        // 验证token类型
-        String tokenType = jwtTokenUtil.getTokenType(refreshToken);
-        if (!"REFRESH".equals(tokenType)) {
-            return Result.error(400, "无效的refresh token");
-        }
-
-        if (!jwtTokenUtil.validateToken(refreshToken)) {
-            return Result.error(400, "refresh token已过期");
-        }
-
-        String username = jwtTokenUtil.getUsernameFromToken(refreshToken);
-        UserDetails userDetails = userService.loadUserByUsername(username);
-
-        String newAccessToken = jwtTokenUtil.generateAccessToken(userDetails);
-        String newRefreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
-
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", newAccessToken);
-        tokens.put("refreshToken", newRefreshToken);
-        tokens.put("tokenType", "Bearer");
-        tokens.put("expiresIn", String.valueOf(
-                jwtTokenUtil.getExpirationDateFromToken(newAccessToken).getTime()
-        ));
-
-        return Result.ok(tokens, "token刷新成功");
-    }
-
     @GetMapping("/me")
     public Result<UserVO> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -169,50 +143,18 @@ public class AuthController {
         return Result.ok(userVO, "获取成功");
     }
 
-    @GetMapping("/validate")
-    public Result<Map<String, Object>> validateToken(
-            @RequestHeader("Authorization") String authHeader) {
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return Result.error(400, "无效的token");
-        }
-
-        String token = authHeader.substring(7);
-        boolean isValid = jwtTokenUtil.validateToken(token);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("valid", isValid);
-
-        if (isValid) {
-            String username = jwtTokenUtil.getUsernameFromToken(token);
-            Date expiration = jwtTokenUtil.getExpirationDateFromToken(token);
-            Long remainingTime = jwtTokenUtil.getRemainingTime(token);
-
-            result.put("username", username);
-            result.put("expiration", expiration);
-            result.put("remainingTime", remainingTime);
-        }
-
-        return Result.ok(result, isValid ? "token有效" : "token无效");
-    }
-
     @PostMapping("/logout")
     public Result<Void> logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             log.info("用户登出: {}", authentication.getName());
         }
+        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
 
         SecurityContextHolder.clearContext();
 
-        // 清除cookie
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Strict")
-                .build();
+        Long userid = loginUser.getUser().getId();
+        redisCache.deleteObject("login:" + userid);
 
         return Result.OK("登出成功");
     }

@@ -2,16 +2,23 @@ package cn.cikian.shop.sys.service.impl;
 
 
 import cn.cikian.shop.sys.entity.SysUser;
+import cn.cikian.shop.sys.entity.dto.LoginUser;
 import cn.cikian.shop.sys.entity.dto.RegisterRequest;
 import cn.cikian.shop.sys.mapper.SysUserMapper;
 import cn.cikian.shop.sys.service.SysUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Cikian
@@ -25,21 +32,14 @@ import java.time.LocalDateTime;
 public class SysUserServiceImpl implements SysUserService {
     @Autowired
     private SysUserMapper userMapper;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public SysUser getByUsername(String username) {
         LambdaQueryWrapper<SysUser> lqw = new LambdaQueryWrapper<>();
         lqw.eq(SysUser::getUsername, username);
         return userMapper.selectOne(lqw);
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String username) {
-        SysUser user = getByUsername(username);
-        if (user != null) {
-            return user;
-        }
-        return null;
     }
 
     @Override
@@ -80,11 +80,25 @@ public class SysUserServiceImpl implements SysUserService {
 
         SysUser user = new SysUser();
         user.setUsername(registerRequest.getUsername());
-        user.setPassword(registerRequest.getPassword());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setEmail(registerRequest.getEmail());
         user.setNickname(registerRequest.getNickname());
         user.setAvatar(registerRequest.getAvatar());
         userMapper.insert(user);
         return user;
+    }
+
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 根据用户名查询用户
+        SysUser user = getByUsername(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("用户名不存在");
+        }
+        // 构建权限列表
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        // TODO: 从数据库中查询用户的权限
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        // 构建LoginUser
+        return new LoginUser(user, authorities);
     }
 }
