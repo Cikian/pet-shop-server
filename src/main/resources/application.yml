@@ -1,1 +1,5 @@
-spring.application.name=shop-server
+spring:
+  application:
+    name: shop-server
+  profiles:
+    active: '@profile.name@'

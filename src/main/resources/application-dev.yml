@@ -1,0 +1,127 @@
+server:
+  port: 18500
+  tomcat:
+    max-swallow-size: -1
+  servlet:
+    context-path:
+
+spring:
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  resource:
+    static-locations: classpath:/static/,classpath:/public/
+  datasource:
+    # 数据库连接配置
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://140.143.140.103:3306/pet_shop?characterEncoding=UTF-8&useUnicode=true&useSSL=true&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:chen0809}
+    # Druid 连接池配置
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        reset-enable: false
+        login-username: admin
+        login-password: admin123
+        allow: 127.0.0.1       # 允许访问的IP，默认所有
+        deny: 192.168.0.1      # 拒绝访问的IP
+
+        # WebStatFilter 配置
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
+        session-stat-enable: true
+        session-stat-max-count: 1000
+
+        # 监控配置
+        filter:
+          stat:
+            enabled: true
+            log-slow-sql: true
+            slow-sql-millis: 1000
+            merge-sql: true
+          wall:
+            enabled: true
+            config:
+              drop-table-allow: false
+              truncate-allow: false
+              elete-allow: true
+              insert-allow: true
+              update-allow: true
+              select-allow: true
+          slf4j:
+            enabled: true
+            statement-log-enabled: false
+            result-set-log-enabled: false
+
+#mybatis plus 设置
+mybatis-plus:
+  # 配置文件位置
+#  config-location: classpath:mybatis-config.xml
+  global-config:
+    # 关闭MP3.0自带的banner
+    banner: false
+    db-config:
+      #主键类型  0:"数据库ID自增",1:"该类型为未设置主键类型", 2:"用户输入ID",3:"全局唯一ID (数字类型唯一ID)", 4:"全局唯一ID UUID",5:"字符串全局唯一ID (idWorker 的字符串表示)";
+      id-type: ASSIGN_ID
+      # 默认数据库表下划线命名
+      table-underline: true
+      # 逻辑删除字段名
+      logic-delete-field: del_flag
+      # 逻辑删除值
+      logic-delete-value: 1
+      # 逻辑未删除值
+      logic-not-delete-value: 0
+      # 字段策略
+      insert-strategy: NOT_NULL
+      update-strategy: NOT_NULL
+      where-strategy: NOT_NULL
+
+  configuration:
+    # 是否开启自动驼峰命名规则映射
+    map-underscore-to-camel-case: true
+    # 全局地开启或关闭配置文件中的所有映射器已经配置的任何缓存
+    cache-enabled: true
+    # 指定 MyBatis 所用日志的具体实现
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    # 执行器类型
+    default-executor-type: REUSE
+    # 自动映射行为
+    auto-mapping-behavior: FULL
+    # 自动映射未知列行为
+    auto-mapping-unknown-column-behavior: WARNING
+    # 配置默认的执行器
+    default-statement-timeout: 30
+    # 设置超时时间，它决定驱动等待数据库响应的秒数
+    default-fetch-size: 100
+    # 允许JDBC支持自动生成主键
+    use-generated-keys: true
+    # 指定 MyBatis 应如何自动映射列到字段或属性
+    call-setters-on-nulls: true
+    # 指定当结果集中值为 null 的时候是否调用映射对象的 setter
+    jdbc-type-for-null: NULL
+
+  # 分页插件配置
+  pagehelper:
+    helper-dialect: mysql
+    reasonable: true
+    support-methods-arguments: true
+    params: count=countSql
+    return-page-info: check
+
+# 日志配置
+logging:
+  level:
+    com.mall.mapper: debug
+    com.baomidou.mybatisplus: debug
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
