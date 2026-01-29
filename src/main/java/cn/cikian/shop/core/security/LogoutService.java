@@ -1,6 +1,6 @@
 package cn.cikian.shop.core.security;
 
-import cn.cikian.shop.utils.JwtUtil;
+import cn.cikian.shop.sys.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

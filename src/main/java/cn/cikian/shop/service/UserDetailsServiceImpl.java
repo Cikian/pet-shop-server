@@ -7,6 +7,7 @@ import cn.cikian.shop.sys.entity.dto.LoginUser;
 import cn.cikian.shop.sys.mapper.SysRoleMapper;
 import cn.cikian.shop.sys.mapper.SysUserMapper;
 import cn.cikian.shop.sys.mapper.SysUserRoleMapper;
+import cn.cikian.shop.sys.utils.UserRoleApi;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +20,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +42,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private SysRoleMapper roleMapper;
     @Autowired
     private SysUserRoleMapper userRoleMapper;
+    @Autowired
+    UserRoleApi userRoleApi;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -65,17 +65,23 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("用户已被锁定");
         }
 
-        // 获取用户权限
-        // Collection<? extends GrantedAuthority> authorities = getAuthorities(user);
-        LambdaQueryWrapper<SysUserRole> lqwRole = new LambdaQueryWrapper<>();
-        lqwRole.eq(SysUserRole::getUserId, user.getId());
-        List<SysUserRole> sysUserRoles = userRoleMapper.selectList(lqwRole);
 
-        List<String> rolesString = sysUserRoles.stream().map(SysUserRole::getRoleKey).distinct().toList();
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        List<String> userPromission = userRoleApi.getUserPromission(user.getId());
+        for (String permission : userPromission) {
+            if (permission != null) {
+                authorities.add(new SimpleGrantedAuthority(permission));
+            }
+        }
 
-        LoginUser loginUser = new LoginUser(user);
-        loginUser.setPermissions(rolesString);
-        return loginUser;
+        List<String> userRoles = userRoleApi.getUserRoles(user.getId());
+        for (String role : userRoles) {
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+            }
+        }
+
+        return new LoginUser(user, authorities);
     }
 
     /**

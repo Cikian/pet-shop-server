@@ -9,6 +9,6 @@
                  LEFT JOIN `sys_role` r ON ur.`role_id` = r.`id`
         WHERE user_id = #{userid}
           AND r.`status` = 0
-          AND m.`status` = 0
+          AND ur.`status` = 0
     </select>
 </mapper>

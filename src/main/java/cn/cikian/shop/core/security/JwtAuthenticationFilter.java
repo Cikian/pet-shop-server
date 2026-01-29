@@ -2,7 +2,10 @@ package cn.cikian.shop.core.security;
 
 import cn.cikian.shop.core.utils.RedisCache;
 import cn.cikian.shop.sys.entity.dto.LoginUser;
-import cn.cikian.shop.utils.JwtUtil;
+import cn.cikian.shop.sys.utils.JwtUtil;
+import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +21,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Objects;
 
 /**
@@ -46,10 +50,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         // 解析token
-        String userid;
+        Long userid;
+        LoginUser loginTokenUser = null;
         try {
             Claims claims = JwtUtil.parseJWT(token);
-            userid = claims.getSubject();
+            loginTokenUser = JwtUtil.getSubObject(token);
+            userid = loginTokenUser.getUser().getId();
         } catch (Exception e) {
             // token非法，直接放行，让后续的授权规则处理
             filterChain.doFilter(request, response);
@@ -57,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         // 从redis中获取用户信息
         String redisKey = "login:" + userid;
-        LoginUser loginUser = redisCache.getCacheObject(redisKey);
+        LoginUser loginUser = (LoginUser) redisCache.getCacheObject(redisKey);
         if (Objects.isNull(loginUser)) {
             // 用户未登录，直接放行，让后续的授权规则处理
             filterChain.doFilter(request, response);
@@ -80,10 +86,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 2. Query parameter
      */
     private String getJwtFromRequest(HttpServletRequest request) {
+        Enumeration<String> headerNames = request.getHeaderNames();
+        // 输出到控制台
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            log.info("Header Name: {}", headerName);
+            log.info("Header Value: {}", request.getHeader(headerName));
+        }
+
         // 1. 从 Authorization header 获取
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+        String token = request.getHeader("authorization");
+        if (token != null && !StrUtil.isBlank(token)) {
+            return token;
         }
 
         // 2. 从 query parameter 获取

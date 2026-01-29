@@ -44,16 +44,17 @@ public class LoginUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<GrantedAuthority> authorityList = new ArrayList<>();
         if (authorities != null) {
-            return authorities;
+            authorityList.addAll(authorities);
         }
         if (permissions != null) {
             // 把permissions中字符串类型的权限信息转换成GrantedAuthority对象存入authorities中
-            authorities = permissions.stream().
-                    map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
+            for (String permission : permissions) {
+                authorityList.add(new SimpleGrantedAuthority(permission));
+            }
         }
-        return authorities != null ? authorities : new ArrayList<>();
+        return authorityList;
     }
 
     @Override

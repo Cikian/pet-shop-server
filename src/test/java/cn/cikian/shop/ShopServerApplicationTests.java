@@ -3,7 +3,7 @@ package cn.cikian.shop;
 
 import cn.cikian.shop.sys.entity.SysUser;
 import cn.cikian.shop.sys.service.SysUserService;
-import cn.cikian.shop.utils.JwtUtil;
+import cn.cikian.shop.sys.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
