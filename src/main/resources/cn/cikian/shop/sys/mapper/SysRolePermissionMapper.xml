@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="cn.cikian.shop.sys.mapper.SysRolePermissionMapper">
+<mapper namespace="cn.cikian.system.sys.mapper.SysRolePermissionMapper">
 
-    <resultMap id="BaseResultMap" type="cn.cikian.shop.sys.entity.SysRolePermission">
+    <resultMap id="BaseResultMap" type="cn.cikian.system.sys.entity.SysRolePermission">
             <id property="id" column="id" />
             <result property="roleKey" column="role_key" />
             <result property="roleId" column="role_id" />
