@@ -63,7 +63,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public void updateLastLogin(Long userId, String ip) {
+    public void updateLastLogin(String userId, String ip) {
         LocalDateTime now = LocalDateTime.now();
 
         LambdaUpdateWrapper<SysUser> luw = new LambdaUpdateWrapper<>();

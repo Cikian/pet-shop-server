@@ -21,7 +21,7 @@ public interface SysUserService {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
 
-    void updateLastLogin(Long userId, String ip);
+    void updateLastLogin(String userId, String ip);
 
     SysUser register(RegisterRequest registerRequest);
 

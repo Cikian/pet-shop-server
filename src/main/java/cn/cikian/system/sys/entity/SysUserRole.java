@@ -21,11 +21,11 @@ public class SysUserRole implements Serializable {
     *
     */
     @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
+    private String id;
     /**
     *
     */
-    private Long userId;
+    private String userId;
     /**
     *
     */
@@ -33,7 +33,7 @@ public class SysUserRole implements Serializable {
     /**
     *
     */
-    private Long roleId;
+    private String roleId;
     /**
     * 1: 启用
     */

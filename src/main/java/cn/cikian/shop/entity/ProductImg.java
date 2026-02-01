@@ -1,4 +1,4 @@
-package cn.cikian.system.sys.entity;
+package cn.cikian.shop.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -13,36 +13,36 @@ import java.io.Serializable;
  * @version 1.0
  * @implNote
  * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
- * @since 2026-01-28 16:18
+ * @since 2026-01-28 16:28
  */
-@Data
-@TableName("sys_role_permission")
-public class SysRolePermission implements Serializable {
 
-    /**
-     *
-     */
+@Data
+@TableName("bus_product_img")
+public class ProductImg implements Serializable {
     @TableId(type = IdType.ASSIGN_ID)
     private String id;
     /**
      *
      */
-    private String roleKey;
+    private String productId;
+    /**
+     * 图片描述
+     */
+    private String description;
+    /**
+     * 图片链接
+     */
+    private String imgUrl;
     /**
      *
      */
-    private String roleId;
+    private Integer sortOrder;
+    /**
+     * 状态（1-启用 0-禁用）
+     */
+    private Boolean status;
     /**
      *
      */
-    private String permissionId;
-    /**
-     *
-     */
-    @Length(max = 256, message = "编码长度不能超过256")
-    private String permissionCode;
-    /**
-     *
-     */
-    private Integer delFlag;
+    private Boolean delFlag;
 }

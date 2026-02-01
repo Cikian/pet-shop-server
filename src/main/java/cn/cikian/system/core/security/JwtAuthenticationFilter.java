@@ -53,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         // 解析token
-        Long userId;
+        String userId;
         LoginUser loginTokenUser = null;
         try {
             Claims claims = JwtUtil.parseJWT(token);

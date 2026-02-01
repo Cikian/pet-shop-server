@@ -19,7 +19,7 @@ spring:
         registration:
           google:
             client-id: ${GOOGLE_CLIENT_ID:1098433020832-sv14ii738scih5ii59gv67tqbbeglvls.apps.googleusercontent.com}
-            client-secret: ${GOOGLE_CLIENT_SECRET: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}
+            client-secret: ${GOOGLE_CLIENT_SECRET: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}
             redirect-uri: "{baseUrl}/api/v1/auth/google/callback"
             scope:
               - email
@@ -139,3 +139,16 @@ logging:
     com.baomidou.mybatisplus: debug
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+
+google-url:
+  token-url: https://oauth2.googleapis.com/token
+  auth-uri: https://accounts.google.com/o/oauth2/auth
+  auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+
+oss:
+  up-yun:
+    bucket-name: cikian
+    user-name: petshop
+    pwd: LfNekunjZInwqd96nP7sxldj1CST8Ots
+    file-path: /petShop
+    customer-uri: https://img-upyun.cikian.cn

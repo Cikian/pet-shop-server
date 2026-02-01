@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.cikian.shop.mapper.SpecValuesMapper">
+
+    <resultMap id="BaseResultMap" type="cn.cikian.shop.entity.SpecValues">
+            <id property="id" column="id" />
+            <result property="specKeyId" column="spec_key_id" />
+            <result property="value" column="value" />
+            <result property="image" column="image" />
+            <result property="sortOrder" column="sort_order" />
+            <result property="delFlag" column="del_flag" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,spec_key_id,value,image,sort_order,del_flag
+    </sql>
+</mapper>
