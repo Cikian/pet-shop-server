@@ -25,4 +25,6 @@ public class AddProductVo {
     private MultipartFile mainImg;
     // 商品附图
     private List<ProductImgVo> pictures;
+    // 规格列表
+    private List<AddSpecVo> specs;
 }

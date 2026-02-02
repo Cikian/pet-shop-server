@@ -25,9 +25,9 @@ public class SpecKeys implements Serializable {
      */
     private String name;
     /**
-     * 关联的分类ID（可为空，表示通用规格）
+     * 关联的商品ID（可为空，表示通用规格）
      */
-    private String categoryId;
+    private String productId;
     /**
      * 输入类型
      */

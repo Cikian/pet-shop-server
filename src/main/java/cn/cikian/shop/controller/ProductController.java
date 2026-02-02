@@ -4,6 +4,7 @@ package cn.cikian.shop.controller;
 import cn.cikian.shop.entity.BusProduct;
 import cn.cikian.shop.entity.ProductImg;
 import cn.cikian.shop.entity.vo.AddProductVo;
+import cn.cikian.shop.entity.vo.AddSpecVo;
 import cn.cikian.shop.entity.vo.ProductImgVo;
 import cn.cikian.shop.service.*;
 import cn.cikian.system.core.utils.OssUtils;
@@ -74,6 +75,9 @@ public class ProductController {
         data.setId(proId);
         BusProduct product = extractProduct(data);
         extractProductImgAndSave(data);
+        extractSpecsAndSave(data);
+
+
         productService.save(product);
 
         return Result.ok("添加成功！");
@@ -148,6 +152,39 @@ public class ProductController {
         if (picList != null && !picList.isEmpty()) {
             picList.forEach(imgService::save);
         }
+    }
+
+    private void extractSpecsAndSave(AddProductVo data) {
+        String mainId = data.getId();
+        List<AddSpecVo> specs = data.getSpecs();
+        if (specs == null || specs.isEmpty()) {
+            return;
+        }
+
+
+
+
+
+//        List<ProductImgVo> newPics = new ArrayList<>();
+//        List<ProductImgVo> oldPics = new ArrayList<>();
+//        for (ProductImgVo vo : pictures) {
+//            String id = vo.getId();
+//            if (id == null || id.isEmpty()) {
+//                newPics.add(vo);
+//            } else {
+//                oldPics.add(vo);
+//            }
+//        }
+//
+//        List<String> oldPicIds = oldPics.stream().map(ProductImgVo::getId).toList();
+//        deleteOldPics(oldPicIds, mainId);
+//        updateOldPics(oldPics);
+//
+//        List<ProductImg> picList = saveProduct2Oss(newPics, mainId);
+//
+//        if (picList != null && !picList.isEmpty()) {
+//            picList.forEach(imgService::save);
+//        }
     }
 
     private List<ProductImg> saveProduct2Oss(List<ProductImgVo> pictures, String mainId) {
