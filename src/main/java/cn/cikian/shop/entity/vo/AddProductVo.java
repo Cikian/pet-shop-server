@@ -27,4 +27,6 @@ public class AddProductVo {
     private List<ProductImgVo> pictures;
     // 规格列表
     private List<AddSpecVo> specs;
+    // SKU列表
+    private List<AddSkuVo> skus;
 }

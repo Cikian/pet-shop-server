@@ -1,7 +1,10 @@
 package cn.cikian.shop.service;
 
 import cn.cikian.shop.entity.BusSku;
+import cn.cikian.shop.entity.vo.AddSkuVo;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * @author Cikian
@@ -11,5 +14,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2026-01-28 16:28
  */
 public interface BusSkusService extends IService<BusSku> {
+    List<AddSkuVo> findByProductId(String productId);
 
 }

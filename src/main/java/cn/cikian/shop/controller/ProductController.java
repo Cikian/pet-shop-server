@@ -1,9 +1,9 @@
 package cn.cikian.shop.controller;
 
 
-import cn.cikian.shop.entity.BusProduct;
-import cn.cikian.shop.entity.ProductImg;
+import cn.cikian.shop.entity.*;
 import cn.cikian.shop.entity.vo.AddProductVo;
+import cn.cikian.shop.entity.vo.AddSkuVo;
 import cn.cikian.shop.entity.vo.AddSpecVo;
 import cn.cikian.shop.entity.vo.ProductImgVo;
 import cn.cikian.shop.service.*;
@@ -15,12 +15,15 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.upyun.UpException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,24 +72,30 @@ public class ProductController {
         return Result.ok(productService.getById(id));
     }
 
+    @Transactional
     @PostMapping
     public Result<?> add(AddProductVo data) {
         String proId = IdWorker.getIdStr();
         data.setId(proId);
         BusProduct product = extractProduct(data);
         extractProductImgAndSave(data);
-        extractSpecsAndSave(data);
-
-
+        Map<String, String> temp2IdMap = extractSpecsAndSave(data);
+        extractSkuSpecsAndSave(data, temp2IdMap);
         productService.save(product);
-
         return Result.ok("添加成功！");
     }
 
+    @Transactional
     @PutMapping
     public Result<?> edit(AddProductVo data) {
-        extractProductImgAndSave(data);
         BusProduct product = extractProduct(data);
+        String productId = product.getId();
+        extractProductImgAndSave(data);
+        removeExistsSkuSpecs(productId);
+        removeExistsSpecs(productId);
+
+        Map<String, String> temp2IdMap = extractSpecsAndSave(data);
+        extractSkuSpecsAndSave(data, temp2IdMap);
         productService.updateById(product);
         return Result.ok("编辑成功！");
     }
@@ -154,38 +163,96 @@ public class ProductController {
         }
     }
 
-    private void extractSpecsAndSave(AddProductVo data) {
+    private Map<String, String> extractSpecsAndSave(AddProductVo data) {
         String mainId = data.getId();
         List<AddSpecVo> specs = data.getSpecs();
         if (specs == null || specs.isEmpty()) {
-            return;
+            return null;
         }
 
+        Map<String, String> resMap = new HashMap<>();
 
+        List<SpecKeys> specKeysList = new ArrayList<>();
+        List<SpecValues> specValuesList = new ArrayList<>();
 
+        for (AddSpecVo spec : specs) {
+            String specTempId = spec.getId();
+            if (specTempId == null || specTempId.isEmpty()) {
+                continue;
+            }
+            String specKeyId = IdWorker.getIdStr();
+            resMap.put(specTempId, specKeyId);
+            SpecKeys sKey = new SpecKeys();
+            sKey.setId(specKeyId);
+            sKey.setProductId(mainId);
+            sKey.setName(spec.getName());
+            sKey.setSortOrder(spec.getSortOrder());
+            sKey.setInputType(spec.getInputType());
+            specKeysList.add(sKey);
 
+            List<SpecValues> specValueList = spec.getSpecValueList();
+            if (specValueList == null) {
+                specValueList = new ArrayList<>();
+            }
 
-//        List<ProductImgVo> newPics = new ArrayList<>();
-//        List<ProductImgVo> oldPics = new ArrayList<>();
-//        for (ProductImgVo vo : pictures) {
-//            String id = vo.getId();
-//            if (id == null || id.isEmpty()) {
-//                newPics.add(vo);
-//            } else {
-//                oldPics.add(vo);
-//            }
-//        }
-//
-//        List<String> oldPicIds = oldPics.stream().map(ProductImgVo::getId).toList();
-//        deleteOldPics(oldPicIds, mainId);
-//        updateOldPics(oldPics);
-//
-//        List<ProductImg> picList = saveProduct2Oss(newPics, mainId);
-//
-//        if (picList != null && !picList.isEmpty()) {
-//            picList.forEach(imgService::save);
-//        }
+            for (SpecValues specValue : specValueList) {
+                String specValueTempId = specValue.getId();
+                if (specValueTempId == null || specValueTempId.isEmpty()) {
+                    continue;
+                }
+                String specValueKeyId = IdWorker.getIdStr();
+                resMap.put(specValueTempId, specValueKeyId);
+
+                specValue.setId(specValueKeyId);
+                specValue.setSpecKeyId(specKeyId);
+                specValuesList.add(specValue);
+            }
+
+        }
+
+        specKeysService.saveBatch(specKeysList);
+        specValuesService.saveBatch(specValuesList);
+
+        return resMap;
     }
+
+    private void extractSkuSpecsAndSave(AddProductVo data, Map<String, String> tempIdMap) {
+        String productId = data.getId();
+        List<AddSkuVo> skus = data.getSkus();
+        if (skus == null || skus.isEmpty()) {
+            return;
+        }
+        List<BusSku> skuList = new ArrayList<>();
+        List<SkuSpec> skuSpecsList = new ArrayList<>();
+        for (AddSkuVo sku : skus) {
+            String skuId = IdWorker.getIdStr();
+            BusSku busSku = new BusSku();
+            BeanUtils.copyProperties(sku, busSku);
+            busSku.setId(skuId);
+            busSku.setProductId(productId);
+            skuList.add(busSku);
+
+            List<SkuSpec> skuSpecs = sku.getSkuSpecs();
+            if (skuSpecs == null) {
+                skuSpecs = new ArrayList<>();
+            }
+            for (SkuSpec skuSpec : skuSpecs) {
+                String specKeyId = tempIdMap.get(skuSpec.getSpecKeyId());
+                String specValueId = tempIdMap.get(skuSpec.getSpecValueId());
+                if (specKeyId == null || specValueId == null) {
+                    continue;
+                }
+                skuSpec.setSkuId(skuId);
+                skuSpec.setSpecKeyId(specKeyId);
+                skuSpec.setSpecValueId(specValueId);
+                skuSpecsList.add(skuSpec);
+            }
+        }
+
+        skusService.saveBatch(skuList);
+        skuSpecsService.saveBatch(skuSpecsList);
+    }
+
 
     private List<ProductImg> saveProduct2Oss(List<ProductImgVo> pictures, String mainId) {
         if (pictures == null) {
@@ -250,5 +317,31 @@ public class ProductController {
         if (!pics.isEmpty()) {
             pics.forEach(imgService::updateById);
         }
+    }
+
+    private void removeExistsSkuSpecs(String productId) {
+        LambdaQueryWrapper<BusSku> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(BusSku::getProductId, productId);
+        List<BusSku> skus = skusService.list(lqw);
+        List<String> skuIds = skus.stream().map(BusSku::getId).toList();
+
+        if (!skuIds.isEmpty()) {
+            LambdaQueryWrapper<SkuSpec> lqw2 = new LambdaQueryWrapper<>();
+            lqw2.in(SkuSpec::getSkuId, skuIds);
+            skuSpecsService.remove(lqw2);
+        }
+        skusService.remove(lqw);
+    }
+
+    private void removeExistsSpecs(String productId) {
+        LambdaQueryWrapper<SpecKeys> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(SpecKeys::getProductId, productId);
+        List<SpecKeys> specKeys = specKeysService.list(lqw);
+        List<String> specKeyIds = specKeys.stream().map(SpecKeys::getId).toList();
+
+        LambdaQueryWrapper<SpecValues> lqw2 = new LambdaQueryWrapper<>();
+        lqw2.in(SpecValues::getSpecKeyId, specKeyIds);
+        specValuesService.remove(lqw2);
+        specKeysService.remove(lqw);
     }
 }

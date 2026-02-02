@@ -2,6 +2,8 @@ package cn.cikian.shop.controller;
 
 
 import cn.cikian.shop.entity.BusSku;
+import cn.cikian.shop.entity.SkuSpec;
+import cn.cikian.shop.entity.vo.AddSkuVo;
 import cn.cikian.shop.service.BusSkusService;
 import cn.cikian.system.sys.entity.vo.Result;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -47,11 +49,10 @@ public class SkuController {
         return Result.ok(skuService.getById(id));
     }
 
-    @GetMapping
-    public Result<List<BusSku>> queryByProductId(@RequestParam String productId) {
-        LambdaQueryWrapper<BusSku> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(BusSku::getProductId, productId);
-        return Result.ok(skuService.list(lqw));
+    @GetMapping("/product")
+    public Result<List<AddSkuVo>> queryByProductId(@RequestParam String productId) {
+        List<AddSkuVo> skus = skuService.findByProductId(productId);
+        return Result.ok(skus);
     }
 
     @PostMapping

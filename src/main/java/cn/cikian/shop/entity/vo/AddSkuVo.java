@@ -1,9 +1,11 @@
 package cn.cikian.shop.entity.vo;
 
 
+import cn.cikian.shop.entity.SkuSpec;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author Cikian
@@ -33,5 +35,5 @@ public class AddSkuVo {
     // 是否为默认SKU
     private Boolean isDefault;
     // sku与规格关系
-    private String skuAttrIds;
+    private List<SkuSpec> skuSpecs;
 }

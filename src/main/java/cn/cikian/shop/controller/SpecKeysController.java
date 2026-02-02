@@ -2,6 +2,7 @@ package cn.cikian.shop.controller;
 
 
 import cn.cikian.shop.entity.SpecKeys;
+import cn.cikian.shop.entity.vo.AddSpecVo;
 import cn.cikian.shop.service.SpecKeysService;
 import cn.cikian.system.sys.entity.vo.Result;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,8 +44,14 @@ public class SpecKeysController {
     }
 
     @GetMapping("/{id}")
-    public Result<SpecKeys> query(@PathVariable Long id) {
+    public Result<SpecKeys> query(@PathVariable String id) {
         return Result.ok(specKeysService.getById(id));
+    }
+
+    @GetMapping("/product")
+    public Result<List<AddSpecVo>> queryByProductId(@RequestParam String productId) {
+        List<AddSpecVo> byProductId = specKeysService.findByProductId(productId);
+        return Result.ok(byProductId);
     }
 
     @PostMapping

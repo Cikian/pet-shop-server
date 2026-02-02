@@ -42,7 +42,7 @@ public class SkuSpecController {
     }
 
     @GetMapping("/{id}")
-    public Result<SkuSpec> query(@PathVariable Long id) {
+    public Result<SkuSpec> query(@PathVariable String id) {
         return Result.ok(skuSpecService.getById(id));
     }
 
