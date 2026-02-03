@@ -205,7 +205,7 @@ public class MybatisPlusConfig {
             this.strictInsertFill(metaObject, "updateBy", String.class, getCurrentUsername());
 
             // 其他字段填充
-            this.strictInsertFill(metaObject, "deleted", Integer.class, 0);
+            this.strictInsertFill(metaObject, "delFlag", Integer.class, 0);
             this.strictInsertFill(metaObject, "version", Integer.class, 0);
         }
 

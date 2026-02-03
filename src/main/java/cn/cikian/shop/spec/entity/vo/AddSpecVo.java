@@ -1,0 +1,30 @@
+package cn.cikian.shop.spec.entity.vo;
+
+
+import cn.cikian.shop.spec.entity.SpecValues;
+import lombok.Data;
+
+import java.util.List;
+
+/**
+ * @author Cikian
+ * @version 1.0
+ * @implNote
+ * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
+ * @since 2026-02-02 15:32
+ */
+
+@Data
+public class AddSpecVo {
+    private String id;
+    // 规格名称，如：颜色、尺寸、容量
+    private String name;
+    // 关联的分类ID（可为空，表示通用规格）
+    private String productId;
+    // 输入类型
+    private String inputType;
+    // 排序
+    private Integer sortOrder;
+    // 规格值列表
+    List<SpecValues> specValueList;
+}

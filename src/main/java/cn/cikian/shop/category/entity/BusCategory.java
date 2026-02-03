@@ -1,4 +1,4 @@
-package cn.cikian.system.sys.entity;
+package cn.cikian.shop.category.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -13,33 +13,25 @@ import java.io.Serializable;
  * @version 1.0
  * @implNote
  * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
- * @since 2026-01-28 16:18
+ * @since 2026-01-28 16:28
  */
-@Data
-@TableName("sys_permission")
-public class SysPermission implements Serializable {
 
-    /**
-     *
-     */
+@Data
+@TableName("bus_category")
+public class BusCategory implements Serializable {
     @TableId(type = IdType.ASSIGN_ID)
     private String id;
     /**
      *
      */
-    private String permissionName;
+    private String name;
     /**
      *
      */
-    private String permissionCode;
-    /**
-     *
-     */
-    private Integer status;
+    private String cateCode;
     /**
      *
      */
     @TableLogic
-    private Integer delFlag;
-
+    private Boolean delFlag;
 }

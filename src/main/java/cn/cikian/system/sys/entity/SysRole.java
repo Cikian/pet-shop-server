@@ -5,6 +5,7 @@ import java.io.Serializable;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
@@ -32,12 +33,13 @@ public class SysRole implements Serializable {
     */
     private String roleKey;
     /**
-    * 1:正常 2:禁用
-    */
+     * 1:正常 2:禁用
+     */
     private Integer status;
     /**
-    *
-    */
+     *
+     */
+    @TableLogic
     private Integer delFlag;
 
 
