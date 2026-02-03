@@ -24,6 +24,7 @@ public class AddProductVo {
     private String categoryId;
     private Integer status;
     private MultipartFile mainImg;
+    private String tags;
     // 商品附图
     private List<ProductImgVo> pictures;
     // 规格列表

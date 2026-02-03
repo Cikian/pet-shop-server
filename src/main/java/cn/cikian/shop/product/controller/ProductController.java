@@ -1,6 +1,10 @@
 package cn.cikian.shop.product.controller;
 
 
+import cn.cikian.shop.category.entity.BusTags;
+import cn.cikian.shop.category.entity.ProductTag;
+import cn.cikian.shop.category.service.BusTagsService;
+import cn.cikian.shop.category.service.ProductTagService;
 import cn.cikian.shop.product.entity.ProductImg;
 import cn.cikian.shop.product.entity.vo.AddProductVo;
 import cn.cikian.shop.product.service.BusProductService;
@@ -32,10 +36,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +62,10 @@ public class ProductController {
     private BusSkusService skusService;
     @Autowired
     private SkuSpecsService skuSpecsService;
+    @Autowired
+    private BusTagsService tagsService;
+    @Autowired
+    private ProductTagService pTagService;
     @Autowired
     private OssUtils ossUtils;
 
@@ -92,6 +97,7 @@ public class ProductController {
         extractProductImgAndSave(data);
         Map<String, String> temp2IdMap = extractSpecsAndSave(data);
         extractSkuSpecsAndSave(data, temp2IdMap);
+        handleTagsAndSave(data);
         productService.save(product);
         return Result.ok("添加成功！");
     }
@@ -105,6 +111,7 @@ public class ProductController {
         Map<String, String> temp2IdMap = handleSpecs(data);
         // 处理SKU相关数据
         handleSkus(data, temp2IdMap);
+        handleTagsAndSave(data);
         productService.updateById(product);
         return Result.ok("编辑成功！");
     }
@@ -262,6 +269,57 @@ public class ProductController {
         skuSpecsService.saveBatch(skuSpecsList);
     }
 
+    private void handleTagsAndSave(AddProductVo data) {
+        String productId = data.getId();
+
+        LambdaQueryWrapper<ProductTag> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(ProductTag::getProductId, productId);
+        pTagService.remove(lqw);
+
+        String tags = data.getTags();
+        if (tags == null || tags.isEmpty()) {
+            return;
+        }
+
+        String categoryId = data.getCategoryId();
+
+        List<String> tagsList = Arrays.asList(tags.split(","));
+
+        List<ProductTag> insertList = new ArrayList<>();
+        List<BusTags> insertTagsList = new ArrayList<>();
+
+        for (String tag : tagsList) {
+            if (tag == null || tag.isEmpty()) {
+                continue;
+            }
+            ProductTag pTag = new ProductTag();
+            pTag.setProductId(productId);
+            pTag.setCategory(categoryId);
+
+            if (tag.startsWith("temp")) {
+                BusTags newTag = new BusTags();
+                String newTagId = IdWorker.getIdStr();
+                String newTagName = tag.split(":")[1];
+                newTag.setId(newTagId);
+                newTag.setTagName(newTagName);
+                newTag.setTagCategory(categoryId);
+                insertTagsList.add(newTag);
+
+                pTag.setTagId(newTagId);
+            } else {
+                pTag.setTagId(tag);
+            }
+            insertList.add(pTag);
+        }
+
+        if (!insertTagsList.isEmpty()) {
+            tagsService.saveBatch(insertTagsList);
+        }
+        if (!insertList.isEmpty()) {
+            pTagService.saveBatch(insertList);
+        }
+    }
+
 
     private List<ProductImg> saveProduct2Oss(List<ProductImgVo> pictures, String mainId) {
         if (pictures == null) {
@@ -337,7 +395,7 @@ public class ProductController {
             lqw.eq(SpecKeys::getProductId, mainId);
             List<SpecKeys> specKeys = specKeysService.list(lqw);
             List<String> specKeyIds = specKeys.stream().map(SpecKeys::getId).toList();
-            
+
             if (!specKeyIds.isEmpty()) {
                 LambdaQueryWrapper<SpecValues> lqw2 = new LambdaQueryWrapper<>();
                 lqw2.in(SpecValues::getSpecKeyId, specKeyIds);
@@ -348,31 +406,31 @@ public class ProductController {
         }
 
         Map<String, String> resMap = new HashMap<>();
-        
+
         // 获取现有规格ID列表
         LambdaQueryWrapper<SpecKeys> lqw = new LambdaQueryWrapper<>();
         lqw.eq(SpecKeys::getProductId, mainId);
         List<SpecKeys> existingSpecKeys = specKeysService.list(lqw);
         Map<String, SpecKeys> existingSpecKeyMap = existingSpecKeys.stream()
                 .collect(Collectors.toMap(SpecKeys::getId, specKey -> specKey));
-        
+
         // 收集所有提交的规格ID（排除临时ID）
         List<String> submittedSpecIds = specs.stream()
                 .map(AddSpecVo::getId)
                 .filter(id -> id != null && !id.startsWith("temp_id"))
                 .collect(Collectors.toList());
-        
+
         // 删除不存在于提交参数中的规格
         List<String> specsToDelete = existingSpecKeyMap.keySet().stream()
                 .filter(id -> !submittedSpecIds.contains(id))
                 .collect(Collectors.toList());
-        
+
         if (!specsToDelete.isEmpty()) {
             // 删除关联的规格值
             LambdaQueryWrapper<SpecValues> valueLqw = new LambdaQueryWrapper<>();
             valueLqw.in(SpecValues::getSpecKeyId, specsToDelete);
             specValuesService.remove(valueLqw);
-            
+
             // 删除规格
             specKeysService.removeByIds(specsToDelete);
         }
@@ -384,7 +442,7 @@ public class ProductController {
 
         for (AddSpecVo spec : specs) {
             String specId = spec.getId();
-            
+
             if (specId == null || specId.startsWith("temp_id")) {
                 // 新增规格
                 String newSpecKeyId = IdWorker.getIdStr();
@@ -398,7 +456,7 @@ public class ProductController {
                 sKey.setSortOrder(spec.getSortOrder());
                 sKey.setInputType(spec.getInputType());
                 specKeysToSave.add(sKey);
-                
+
                 // 处理规格值
                 handleSpecValues(spec, newSpecKeyId, specValuesToSave, resMap);
             } else {
@@ -409,7 +467,7 @@ public class ProductController {
                     existingSpecKey.setSortOrder(spec.getSortOrder());
                     existingSpecKey.setInputType(spec.getInputType());
                     specKeysToUpdate.add(existingSpecKey);
-                    
+
                     // 处理规格值
                     handleSpecValuesForUpdate(spec, specId, specValuesToSave, specValuesToUpdate, resMap);
                 }
@@ -455,7 +513,7 @@ public class ProductController {
         }
     }
 
-    private void handleSpecValuesForUpdate(AddSpecVo spec, String specKeyId, List<SpecValues> specValuesToSave, 
+    private void handleSpecValuesForUpdate(AddSpecVo spec, String specKeyId, List<SpecValues> specValuesToSave,
                                           List<SpecValues> specValuesToUpdate, Map<String, String> resMap) {
         List<SpecValues> specValueList = spec.getSpecValueList();
         if (specValueList == null) {
@@ -472,25 +530,25 @@ public class ProductController {
         List<SpecValues> existingValues = specValuesService.list(lqw);
         Map<String, SpecValues> existingValueMap = existingValues.stream()
                 .collect(Collectors.toMap(SpecValues::getId, value -> value));
-        
+
         // 收集所有提交的规格值ID（排除临时ID）
         List<String> submittedValueIds = specValueList.stream()
                 .map(SpecValues::getId)
                 .filter(id -> id != null && !id.startsWith("temp_id"))
                 .collect(Collectors.toList());
-        
+
         // 删除不存在于提交参数中的规格值
         List<String> valuesToDelete = existingValueMap.keySet().stream()
                 .filter(id -> !submittedValueIds.contains(id))
                 .collect(Collectors.toList());
-        
+
         if (!valuesToDelete.isEmpty()) {
             specValuesService.removeByIds(valuesToDelete);
         }
 
         for (SpecValues specValue : specValueList) {
             String specValueId = specValue.getId();
-            
+
             if (specValueId == null || specValueId.startsWith("temp_id")) {
                 // 新增规格值
                 String newSpecValueId = IdWorker.getIdStr();
@@ -516,14 +574,14 @@ public class ProductController {
     private void handleSkus(AddProductVo data, Map<String, String> temp2IdMap) {
         String productId = data.getId();
         List<AddSkuVo> skus = data.getSkus();
-        
+
         if (skus == null || skus.isEmpty()) {
             // 如果没有SKU数据，删除所有现有SKU及关联数据
             LambdaQueryWrapper<BusSku> skuLqw = new LambdaQueryWrapper<>();
             skuLqw.eq(BusSku::getProductId, productId);
             List<BusSku> existingSkus = skusService.list(skuLqw);
             List<String> existingSkuIds = existingSkus.stream().map(BusSku::getId).toList();
-            
+
             if (!existingSkuIds.isEmpty()) {
                 LambdaQueryWrapper<SkuSpec> specLqw = new LambdaQueryWrapper<>();
                 specLqw.in(SkuSpec::getSkuId, existingSkuIds);
@@ -539,24 +597,24 @@ public class ProductController {
         List<BusSku> existingSkus = skusService.list(skuLqw);
         Map<String, BusSku> existingSkuMap = existingSkus.stream()
                 .collect(Collectors.toMap(BusSku::getId, sku -> sku));
-        
+
         // 收集所有提交的SKU ID（排除临时ID）
         List<String> submittedSkuIds = skus.stream()
                 .map(AddSkuVo::getId)
                 .filter(id -> id != null && !id.startsWith("temp_id"))
                 .collect(Collectors.toList());
-        
+
         // 删除不存在于提交参数中的SKU
         List<String> skusToDelete = existingSkuMap.keySet().stream()
                 .filter(id -> !submittedSkuIds.contains(id))
                 .collect(Collectors.toList());
-        
+
         if (!skusToDelete.isEmpty()) {
             // 删除关联的SKU规格
             LambdaQueryWrapper<SkuSpec> specLqw = new LambdaQueryWrapper<>();
             specLqw.in(SkuSpec::getSkuId, skusToDelete);
             skuSpecsService.remove(specLqw);
-            
+
             // 删除SKU
             skusService.removeByIds(skusToDelete);
         }
@@ -567,7 +625,7 @@ public class ProductController {
 
         for (AddSkuVo sku : skus) {
             String skuId = sku.getId();
-            
+
             if (skuId == null || skuId.startsWith("temp_id")) {
                 // 新增SKU
                 String newSkuId = IdWorker.getIdStr();
@@ -576,7 +634,7 @@ public class ProductController {
                 busSku.setId(newSkuId);
                 busSku.setProductId(productId);
                 skusToSave.add(busSku);
-                
+
                 // 处理SKU规格
                 handleSkuSpecs(sku, newSkuId, temp2IdMap, skuSpecsToSave);
             } else {
@@ -585,12 +643,12 @@ public class ProductController {
                 if (existingSku != null) {
                     BeanUtils.copyProperties(sku, existingSku, "id", "productId");
                     skusToUpdate.add(existingSku);
-                    
+
                     // 删除旧的SKU规格并添加新的
                     LambdaQueryWrapper<SkuSpec> specLqw = new LambdaQueryWrapper<>();
                     specLqw.eq(SkuSpec::getSkuId, skuId);
                     skuSpecsService.remove(specLqw);
-                    
+
                     // 处理新的SKU规格
                     handleSkuSpecs(sku, skuId, temp2IdMap, skuSpecsToSave);
                 }
@@ -614,11 +672,11 @@ public class ProductController {
         if (skuSpecs == null) {
             return;
         }
-        
+
         for (SkuSpec skuSpec : skuSpecs) {
             String specKeyId = skuSpec.getSpecKeyId();
             String specValueId = skuSpec.getSpecValueId();
-            
+
             // 替换临时ID为真实ID
             if (temp2IdMap != null) {
                 if (specKeyId != null && specKeyId.startsWith("temp_id")) {
@@ -628,11 +686,11 @@ public class ProductController {
                     specValueId = temp2IdMap.get(specValueId);
                 }
             }
-            
+
             if (specKeyId == null || specValueId == null) {
                 continue;
             }
-            
+
             SkuSpec newSkuSpec = new SkuSpec();
             newSkuSpec.setSkuId(skuId);
             newSkuSpec.setSpecKeyId(specKeyId);

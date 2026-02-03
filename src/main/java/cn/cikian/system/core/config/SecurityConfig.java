@@ -88,6 +88,7 @@ public class SecurityConfig {
                                 "/api/skuSpec/**",
                                 "/api/spvalue/**",
                                 "/api/spkey/**",
+                                "/api/tags/**",
                                 "/oauth2/**"
                         ).permitAll()
 
@@ -166,7 +167,7 @@ public class SecurityConfig {
                             response.setStatus(200);
                         })
                 )
-                
+
                 // 配置OAuth2登录
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/api/v1/auth/google/login")

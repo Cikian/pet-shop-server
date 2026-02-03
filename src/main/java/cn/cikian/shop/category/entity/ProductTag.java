@@ -30,6 +30,8 @@ public class ProductTag implements Serializable {
      * tagId
      */
     private String tagId;
-    @TableLogic
-    private Boolean delFlag;
+    /**
+     * 分类
+     */
+    private String category;
 }
