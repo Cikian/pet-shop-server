@@ -52,6 +52,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+
+        if (token.startsWith("Bearer")) {
+            token = token.substring(7);
+        }
         // 解析token
         String userId;
         LoginUser loginTokenUser = null;
@@ -93,11 +97,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String getJwtFromRequest(HttpServletRequest request) {
         Enumeration<String> headerNames = request.getHeaderNames();
         // 输出到控制台
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            log.info("Header Name: {}", headerName);
-            log.info("Header Value: {}", request.getHeader(headerName));
-        }
+        // while (headerNames.hasMoreElements()) {
+        //     String headerName = headerNames.nextElement();
+        //     log.info("Header Name: {}", headerName);
+        //     log.info("Header Value: {}", request.getHeader(headerName));
+        // }
 
         // 1. 从 Authorization header 获取
         String token = request.getHeader("authorization");

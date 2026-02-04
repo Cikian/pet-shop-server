@@ -1,12 +1,17 @@
 package cn.cikian.system.core.security;
 
+import cn.cikian.system.sys.entity.enmu.HttpStatus;
+import cn.cikian.system.sys.entity.vo.Result;
+import cn.cikian.system.sys.exception.CikException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
@@ -33,25 +38,23 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
 
-        log.error("未授权访问: {} {}", request.getMethod(), request.getRequestURI(), authException);
+        log.error("访问受限: [{}] {}", request.getMethod(), request.getRequestURI(), authException);
+
+        Result<?> res = null;
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        final Map<String, Object> body = new HashMap<>();
-        body.put("code", 401);
-        body.put("message", "认证失败，请登录后访问");
-        body.put("data", null);
-        body.put("path", request.getServletPath());
-        body.put("timestamp", System.currentTimeMillis());
-
         // 根据异常类型返回具体的错误消息
         if (authException instanceof org.springframework.security.core.userdetails.UsernameNotFoundException) {
+            res = Result.error(HttpStatus.NO_USER.code(), HttpStatus.NO_USER.message());
             // 使用UserDetailsServiceImpl中定义的具体消息
-            body.put("message", authException.getMessage());
-        } else if (authException instanceof org.springframework.security.authentication.BadCredentialsException) {
+        } else if (authException instanceof InsufficientAuthenticationException) {
+            res = Result.error(HttpStatus.UNAUTHORIZED.code(), HttpStatus.UNAUTHORIZED.message());
+        }
+        else if (authException instanceof org.springframework.security.authentication.BadCredentialsException) {
             // 密码错误
-            body.put("message", "密码错误");
+            res = Result.error(HttpStatus.BAD_PWD.code(), HttpStatus.BAD_PWD.message());
         }
 
         // 如果是凭证过期，可以返回特定消息
@@ -60,10 +63,10 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             String token = authHeader.substring(7);
             if (token != null && !token.isEmpty()) {
                 // 可以在这里检查token是否过期，并返回更具体的消息
-                body.put("message", "登录已过期，请重新登录");
+                res = Result.error(HttpStatus.NEED_LOGIN.code(), HttpStatus.NEED_LOGIN.message());
             }
         }
 
-        objectMapper.writeValue(response.getOutputStream(), body);
+        objectMapper.writeValue(response.getOutputStream(), res);
     }
 }

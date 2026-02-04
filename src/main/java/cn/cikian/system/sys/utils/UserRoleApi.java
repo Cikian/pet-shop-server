@@ -2,7 +2,6 @@ package cn.cikian.system.sys.utils;
 
 
 import cn.cikian.system.sys.entity.SysRolePermission;
-import cn.cikian.system.sys.entity.SysUser;
 import cn.cikian.system.sys.entity.SysUserRole;
 import cn.cikian.system.sys.mapper.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -41,7 +40,7 @@ public class UserRoleApi {
      * @param userId
      * @return
      */
-    public List<String> getUserRoles(Long userId) {
+    public List<String> getUserRoles(String userId) {
         LambdaQueryWrapper<SysUserRole> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysUserRole::getUserId, userId);
         List<SysUserRole> userRoles = userRoleMapper.selectList(wrapper);
@@ -49,28 +48,11 @@ public class UserRoleApi {
     }
 
     /**
-     * 获取用户角色列表
-     * @param userName
-     * @return
-     */
-    public List<String> getUserRoles(String userName) {
-        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysUser::getUsername, userName);
-
-        SysUser user = userMapper.selectOne(wrapper);
-        if (user != null) {
-            return getUserRoles(user.getId());
-        } else {
-            return List.of();
-        }
-    }
-
-    /**
      * 获取用户权限列表
      * @param userId
      * @return
      */
-    public List<String> getUserPromission(Long userId) {
+    public List<String> getUserPromission(String userId) {
         List<String> userRoles = getUserRoles(userId);
 
         if (userRoles.isEmpty()) {
@@ -84,28 +66,11 @@ public class UserRoleApi {
     }
 
     /**
-     * 获取用户权限列表
-     * @param userName
-     * @return
-     */
-    public List<String> getUserPromission(String userName) {
-        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysUser::getUsername, userName);
-
-        SysUser user = userMapper.selectOne(wrapper);
-        if (user != null) {
-            return getUserPromission(user.getId());
-        } else {
-            return List.of();
-        }
-    }
-
-    /**
      * 获取用户的Security权限列表
      * @param userId
      * @return
      */
-    public Collection<? extends GrantedAuthority> getSecurityAuthorities(Long userId) {
+    public Collection<? extends GrantedAuthority> getSecurityAuthorities(String userId) {
         List<GrantedAuthority> authorities = new ArrayList<>();
 
         List<String> userRoles = this.getUserRoles(userId);
@@ -123,23 +88,5 @@ public class UserRoleApi {
 
         return authorities;
     }
-
-    /**
-     * 获取用户的Security权限列表
-     * @param userName
-     * @return
-     */
-    public Collection<? extends GrantedAuthority> getSecurityAuthorities(String userName) {
-        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysUser::getUsername, userName);
-
-        SysUser user = userMapper.selectOne(wrapper);
-        if (user != null) {
-            return getSecurityAuthorities(user.getId());
-        } else {
-            return List.of();
-        }
-    }
-
 
 }

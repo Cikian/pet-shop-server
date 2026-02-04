@@ -81,6 +81,12 @@ public class SecurityConfig {
                                 "/api/v1/file/download/**",
                                 "/api/v1/products/public/**",
                                 "/api/v1/categories/public/**",
+                                "/api/v1/test/**",
+                                "/oauth2/**"
+                        ).permitAll()
+
+                        // 需要认证但不需要特定权限的接口
+                        .requestMatchers(
                                 "/api/goods/**",
                                 "/api/cate/**",
                                 "/api/proimg/**",
@@ -88,9 +94,8 @@ public class SecurityConfig {
                                 "/api/skuSpec/**",
                                 "/api/spvalue/**",
                                 "/api/spkey/**",
-                                "/api/tags/**",
-                                "/oauth2/**"
-                        ).permitAll()
+                                "/api/tags/**"
+                        ).authenticated()
 
                         // druid相关
                         .requestMatchers(

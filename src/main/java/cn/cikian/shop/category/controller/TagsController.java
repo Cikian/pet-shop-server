@@ -32,6 +32,7 @@ public class TagsController {
     @Autowired
     private ProductTagService pTagService;
 
+
     @GetMapping(value = "/list")
     public Result<IPage<BusTags>> queryPageList(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,

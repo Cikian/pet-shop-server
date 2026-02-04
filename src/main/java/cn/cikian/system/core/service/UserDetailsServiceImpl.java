@@ -44,14 +44,22 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     UserRoleApi userRoleApi;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        log.debug("加载用户: {}", username);
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        log.debug("加载用户: {}", usernameOrEmail);
 
+        // 首先尝试通过用户名查询用户
         LambdaQueryWrapper<SysUser> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(SysUser::getUsername, username);
+        lqw.eq(SysUser::getUsername, usernameOrEmail);
         SysUser user = userMapper.selectOne(lqw);
+        
+        // 如果找不到，再尝试通过邮箱查询用户
         if (user == null) {
-            throw new UsernameNotFoundException("用户不存在: " + username);
+            lqw = new LambdaQueryWrapper<>();
+            lqw.eq(SysUser::getEmail, usernameOrEmail);
+            user = userMapper.selectOne(lqw);
+            if (user == null) {
+                throw new UsernameNotFoundException("用户不存在: " + usernameOrEmail);
+            }
         }
 
         // 检查用户状态
