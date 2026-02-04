@@ -6,7 +6,6 @@ server:
     context-path:
 
 spring:
-
   servlet:
     multipart:
       max-file-size: 100MB
@@ -24,11 +23,13 @@ spring:
             scope:
               - email
               - profile
+  web:
+    resources:
+      static-locations: classpath:/static/,classpath:/public/
+
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
-  resource:
-    static-locations: classpath:/static/,classpath:/public/
   datasource:
     # 数据库连接配置
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -38,14 +39,18 @@ spring:
     # Druid 连接池配置
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
       stat-view-servlet:
         enabled: true
         url-pattern: /druid/*
         reset-enable: false
         login-username: admin
         login-password: admin123
-        allow: 127.0.0.1       # 允许访问的IP，默认所有
-        deny: 192.168.0.1      # 拒绝访问的IP
+#        allow: 127.0.0.1     # 允许访问的IP，默认所有
+#        deny: 192.168.0.1   # 拒绝访问的IP
 
         # WebStatFilter 配置
       web-stat-filter:
@@ -56,25 +61,25 @@ spring:
         session-stat-max-count: 1000
 
         # 监控配置
-        filter:
-          stat:
-            enabled: true
-            log-slow-sql: true
-            slow-sql-millis: 1000
-            merge-sql: true
-          wall:
-            enabled: true
-            config:
-              drop-table-allow: false
-              truncate-allow: false
-              elete-allow: true
-              insert-allow: true
-              update-allow: true
-              select-allow: true
-          slf4j:
-            enabled: true
-            statement-log-enabled: false
-            result-set-log-enabled: false
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 1000
+          merge-sql: true
+        wall:
+          enabled: true
+          config:
+            drop-table-allow: false
+            truncate-allow: false
+            delete-allow: true
+            insert-allow: true
+            update-allow: true
+            select-allow: true
+        slf4j:
+          enabled: true
+          statement-log-enabled: false
+          result-set-log-enabled: false
 
 #mybatis plus 设置
 mybatis-plus:

@@ -58,7 +58,7 @@ public class SecurityConfig {
     private LogoutHandler logoutHandler;
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
     }
 
@@ -90,6 +90,11 @@ public class SecurityConfig {
                                 "/api/spkey/**",
                                 "/api/tags/**",
                                 "/oauth2/**"
+                        ).permitAll()
+
+                        // druid相关
+                        .requestMatchers(
+                                "/druid/**"
                         ).permitAll()
 
                         // Swagger 相关
