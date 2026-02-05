@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Email Template</title>
+</head>
+<body>
+<h1>Welcome, <span th:text="${name}">User</span>!</h1>
+<p>This is a sample email template using Thymeleaf.</p>
+<p>Your verification code is: <strong th:text="${code}">123456</strong></p>
+</body>
+</html>

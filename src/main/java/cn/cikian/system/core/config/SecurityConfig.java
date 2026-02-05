@@ -82,6 +82,7 @@ public class SecurityConfig {
                                 "/api/v1/products/public/**",
                                 "/api/v1/categories/public/**",
                                 "/api/v1/test/**",
+                                "/api/test/**",
                                 "/oauth2/**"
                         ).permitAll()
 

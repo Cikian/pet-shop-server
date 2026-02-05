@@ -81,6 +81,30 @@ spring:
           statement-log-enabled: false
           result-set-log-enabled: false
 
+  mail:
+    host: mail.cikian.cn
+    port: 25
+    username: noreply@cikian.cn
+    password: Chen0809
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  thymeleaf:
+    cache: true
+    check-template: true
+    check-template-location: true
+    content-type: text/html
+    enabled: true
+    encoding: UTF-8
+    excluded-view-names: ''
+    mode: HTML
+    prefix: classpath:/templates/
+    suffix: .html
+
 #mybatis plus 设置
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
