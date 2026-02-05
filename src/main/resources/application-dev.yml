@@ -35,7 +35,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://140.143.140.103:3306/pet_shop?characterEncoding=UTF-8&useUnicode=true&useSSL=true&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:chen0809}
+    password: ${DB_PASSWORD:Chen0809}
     # Druid 连接池配置
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
@@ -91,8 +91,12 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: true
-            required: true
+            enable: false
+            required: false
+          ssl:
+            enable: false  # 关闭SSL
+            trust: "*"     # 信任所有证书（可选）
+    protocol: smtp
   thymeleaf:
     cache: true
     check-template: true

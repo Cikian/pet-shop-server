@@ -51,7 +51,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         LambdaQueryWrapper<SysUser> lqw = new LambdaQueryWrapper<>();
         lqw.eq(SysUser::getUsername, usernameOrEmail);
         SysUser user = userMapper.selectOne(lqw);
-        
+
         // 如果找不到，再尝试通过邮箱查询用户
         if (user == null) {
             lqw = new LambdaQueryWrapper<>();
@@ -63,11 +63,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         // 检查用户状态
-        if (user.getStatus() != null && user.getStatus() == 1) {
+        if (user.getStatus() != null && user.getStatus() == 2) {
             throw new UsernameNotFoundException("用户已被禁用");
         }
 
-        if (user.getStatus() != null && user.getStatus() == 2) {
+        if (user.getStatus() != null && user.getStatus() == 3) {
             throw new UsernameNotFoundException("用户已被锁定");
         }
 

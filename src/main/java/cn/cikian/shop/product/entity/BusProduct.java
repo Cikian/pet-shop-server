@@ -27,7 +27,6 @@ public class BusProduct implements Serializable {
     /**
      * 商品名称
      */
-    @Length(max = 256, message = "编码长度不能超过256")
     private String name;
     /**
      * 商品描述

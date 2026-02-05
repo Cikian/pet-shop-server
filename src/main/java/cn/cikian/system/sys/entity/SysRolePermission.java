@@ -40,8 +40,11 @@ public class SysRolePermission implements Serializable {
     /**
      *
      */
-    @Length(max = 256, message = "编码长度不能超过256")
     private String permissionCode;
+    /**
+     * 1: 启用
+     */
+    private Integer status;
     /**
      *
      */

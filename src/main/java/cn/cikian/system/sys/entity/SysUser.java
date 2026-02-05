@@ -49,11 +49,6 @@ public class SysUser implements Serializable {
     private String password;
 
     /**
-     * 密码盐
-     */
-    private String salt;
-
-    /**
      * 昵称
      */
     private String nickname;
@@ -83,7 +78,7 @@ public class SysUser implements Serializable {
     /**
      * 登录来源
      */
-    private String loginSource;
+    private String userSource;
 
     /**
      * 电话

@@ -103,7 +103,7 @@ public class SysUserServiceImpl implements SysUserService {
             // 如果用户存在，更新用户信息
             user.setNickname(nickname);
             user.setAvatar(avatar);
-            user.setLoginSource("google");
+            user.setUserSource("google");
             userMapper.updateById(user);
         } else {
             // 如果用户不存在，创建新用户
@@ -112,7 +112,7 @@ public class SysUserServiceImpl implements SysUserService {
             user.setEmail(email);
             user.setNickname(nickname);
             user.setAvatar(avatar);
-            user.setLoginSource("google");
+            user.setUserSource("google");
             user.setPassword(passwordEncoder.encode("google_oauth2_" + System.currentTimeMillis())); // 生成随机密码
             userMapper.insert(user);
         }

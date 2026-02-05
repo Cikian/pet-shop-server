@@ -41,8 +41,7 @@ public class TestController {
     @GetMapping("/template")
     public void sendTemplateEmail(@RequestParam String to, @RequestParam String subject, @RequestParam String text) {
         Map<String, Object> variables = new HashMap<>();
-        variables.put("name", to);
-        variables.put("code", RandomUtil.randomString(6));
-        emailService.sendTemplateEmail(to, subject, "EmailTemplate", variables);
+        variables.put("verificationCode", text);
+        emailService.sendTemplateEmail(to, subject, "Verification", variables);
     }
 }

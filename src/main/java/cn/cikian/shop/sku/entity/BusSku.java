@@ -55,6 +55,10 @@ public class BusSku implements Serializable {
      * 是否为默认SKU
      */
     private Boolean isDefault;
+    /**
+     * 1-启用 0-禁用
+     */
+    private Boolean status;
     @TableLogic
     private Boolean delFlag;
 }

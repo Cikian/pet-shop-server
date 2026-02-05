@@ -157,6 +157,9 @@ public class ProductController {
     private void extractProductImgAndSave(AddProductVo data) {
         String mainId = data.getId();
         List<ProductImgVo> pictures = data.getPictures();
+        if (pictures == null || pictures.isEmpty()) {
+            return;
+        }
         List<ProductImgVo> newPics = new ArrayList<>();
         List<ProductImgVo> oldPics = new ArrayList<>();
         for (ProductImgVo vo : pictures) {
