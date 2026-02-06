@@ -4,10 +4,13 @@ package cn.cikian.system.sys.service.impl;
 import cn.cikian.system.sys.entity.SysUser;
 import cn.cikian.system.sys.entity.dto.LoginUser;
 import cn.cikian.system.sys.entity.dto.RegisterRequest;
+import cn.cikian.system.sys.entity.vo.UserVO;
 import cn.cikian.system.sys.mapper.SysUserMapper;
 import cn.cikian.system.sys.service.SysUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,7 +32,7 @@ import java.util.List;
  */
 
 @Service
-public class SysUserServiceImpl implements SysUserService {
+public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
     @Autowired
     private SysUserMapper userMapper;
     @Autowired
@@ -117,6 +120,27 @@ public class SysUserServiceImpl implements SysUserService {
             userMapper.insert(user);
         }
         return user;
+    }
+
+    @Override
+    public Page<UserVO> pageUserMode(Page<SysUser> page, LambdaQueryWrapper<SysUser> lqw) {
+        Page<SysUser> pageList = page(page, lqw);
+        List<SysUser> records = pageList.getRecords();
+        if (records == null) {
+            return new Page<>();
+        }
+        Page<UserVO> res = new Page<>();
+        List<UserVO> userVOS = new ArrayList<>();
+        for (SysUser record : records) {
+            userVOS.add(new UserVO(record));
+        }
+
+        res.setRecords(userVOS);
+        res.setTotal(pageList.getTotal());
+        res.setPages(pageList.getPages());
+        res.setCurrent(pageList.getCurrent());
+        res.setSize(pageList.getSize());
+        return res;
     }
 
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

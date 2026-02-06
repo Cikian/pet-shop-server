@@ -2,8 +2,13 @@ package cn.cikian.system.sys.service;
 
 import cn.cikian.system.sys.entity.SysUser;
 import cn.cikian.system.sys.entity.dto.RegisterRequest;
+import cn.cikian.system.sys.entity.vo.UserVO;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
 
-public interface SysUserService {
+public interface SysUserService extends IService<SysUser> {
     /**
      * 根据用户名查询用户
      * @param username
@@ -34,4 +39,6 @@ public interface SysUserService {
      * @return
      */
     SysUser createOrUpdateGoogleUser(String email, String username, String nickname, String avatar);
+
+    Page<UserVO> pageUserMode(Page<SysUser> page, LambdaQueryWrapper<SysUser> lqw);
 }

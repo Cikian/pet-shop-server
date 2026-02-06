@@ -95,7 +95,9 @@ public class SecurityConfig {
                                 "/api/skuSpec/**",
                                 "/api/spvalue/**",
                                 "/api/spkey/**",
-                                "/api/tags/**"
+                                "/api/tags/**",
+                                "/api/user/**",
+                                "/api/role/**"
                         ).authenticated()
 
                         // druid相关

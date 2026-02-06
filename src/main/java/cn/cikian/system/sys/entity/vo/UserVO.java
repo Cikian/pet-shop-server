@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
@@ -39,33 +41,38 @@ public class UserVO {
     private Integer status;
     private LocalDateTime lastLoginTime;
     private String lastLoginIp;
+    private LocalDateTime createTime;
 
     public UserVO(SysUser user) {
-        this.id = user.getId();
-        this.username = user.getUsername();
-        this.nickname = user.getNickname();
-        this.avatar = user.getAvatar();
-        this.birthday = user.getBirthday();
-        this.sex = user.getSex();
-        this.email = user.getEmail();
-        this.phone = user.getPhone();
-        this.status = user.getStatus();
-        this.lastLoginTime = user.getLastLoginTime();
-        this.lastLoginIp = user.getLastLoginIp();
+//        this.id = user.getId();
+//        this.username = user.getUsername();
+//        this.nickname = user.getNickname();
+//        this.avatar = user.getAvatar();
+//        this.birthday = user.getBirthday();
+//        this.sex = user.getSex();
+//        this.email = user.getEmail();
+//        this.phone = user.getPhone();
+//        this.status = user.getStatus();
+//        this.lastLoginTime = user.getLastLoginTime();
+//        this.lastLoginIp = user.getLastLoginIp();
+
+        BeanUtils.copyProperties(user, this);
     }
 
     public UserVO(LoginUser loginUser) {
         SysUser user = loginUser.getUser();
-        this.id = user.getId();
-        this.username = user.getUsername();
-        this.nickname = user.getNickname();
-        this.avatar = user.getAvatar();
-        this.birthday = user.getBirthday();
-        this.sex = user.getSex();
-        this.email = user.getEmail();
-        this.phone = user.getPhone();
-        this.status = user.getStatus();
-        this.lastLoginTime = user.getLastLoginTime();
-        this.lastLoginIp = user.getLastLoginIp();
+//        this.id = user.getId();
+//        this.username = user.getUsername();
+//        this.nickname = user.getNickname();
+//        this.avatar = user.getAvatar();
+//        this.birthday = user.getBirthday();
+//        this.sex = user.getSex();
+//        this.email = user.getEmail();
+//        this.phone = user.getPhone();
+//        this.status = user.getStatus();
+//        this.lastLoginTime = user.getLastLoginTime();
+//        this.lastLoginIp = user.getLastLoginIp();
+
+        BeanUtils.copyProperties(user, this);
     }
 }

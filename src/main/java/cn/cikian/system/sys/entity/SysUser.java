@@ -105,5 +105,6 @@ public class SysUser implements Serializable {
      * 上次登录IP
      */
     private String lastLoginIp;
+    private LocalDateTime createTime;
 
 }

@@ -1,12 +1,155 @@
 package cn.cikian.system.sys.controller;
 
 
+import cn.cikian.system.sys.entity.SysPermission;
+import cn.cikian.system.sys.entity.SysRole;
+import cn.cikian.system.sys.entity.SysRolePermission;
+import cn.cikian.system.sys.entity.SysUserRole;
+import cn.cikian.system.sys.entity.vo.Result;
+import cn.cikian.system.sys.service.SysPermissionService;
+import cn.cikian.system.sys.service.SysRolePermissionService;
+import cn.cikian.system.sys.service.SysRoleService;
+import cn.cikian.system.sys.service.SysUserRoleService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 /**
  * @author Cikian
- * @since  2026-02-06 16:39
  * @version 1.0
+ * @implNote
  * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
- * @implNote 
+ * @since 2026-02-06 16:39
  */
+
+@RestController
+@RequestMapping("/api/role")
 public class RoleController {
+    @Autowired
+    private SysRoleService roleService;
+    @Autowired
+    private SysUserRoleService userRoleService;
+    @Autowired
+    private SysPermissionService permissionService;
+    @Autowired
+    private SysRolePermissionService rolePermissionService;
+
+    @GetMapping("/list")
+    private Result<Page<SysRole>> queryUserByPage(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                  @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                  @RequestParam(name = "keyword", defaultValue = "") String keyword) {
+
+        Page<SysRole> page = new Page<>(pageNo, pageSize);
+        LambdaQueryWrapper<SysRole> lqw = new LambdaQueryWrapper<>();
+        if (keyword != null && !keyword.isEmpty()) {
+            lqw.like(SysRole::getRoleKey, keyword).or().like(SysRole::getRoleName, keyword);
+        }
+
+        Page<SysRole> rolePage = roleService.page(page, lqw);
+        return Result.ok(rolePage);
+    }
+
+    @GetMapping("/permissions")
+    private Result<Page<SysPermission>> queryPermissionsByPage(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                               @RequestParam(name = "keyword", defaultValue = "") String keyword) {
+
+        Page<SysPermission> page = new Page<>(pageNo, pageSize);
+        LambdaQueryWrapper<SysPermission> lqw = new LambdaQueryWrapper<>();
+        if (keyword != null && !keyword.isEmpty()) {
+            lqw.like(SysPermission::getPermissionCode, keyword).or().like(SysPermission::getPermissionName, keyword);
+        }
+
+        Page<SysPermission> permissionPage = permissionService.page(page, lqw);
+        return Result.ok(permissionPage);
+    }
+
+    @GetMapping("/permissionsByRole")
+    private Result<Page<SysPermission>> queryPermissionsByRole(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                               @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                               @RequestParam(name = "roleId", defaultValue = "") String roleId) {
+
+        LambdaQueryWrapper<SysRolePermission> lqwRp = new LambdaQueryWrapper<>();
+        lqwRp.eq(SysRolePermission::getRoleId, roleId);
+        List<SysRolePermission> rpList = rolePermissionService.list(lqwRp);
+        if (rpList.isEmpty()) {
+            return Result.ok(new Page<>());
+        }
+        List<String> permissionIds = rpList.stream().map(SysRolePermission::getPermissionId).toList();
+
+        Page<SysPermission> page = new Page<>(pageNo, pageSize);
+        LambdaQueryWrapper<SysPermission> lqw = new LambdaQueryWrapper<>();
+        lqw.in(SysPermission::getId, permissionIds);
+        Page<SysPermission> permissionPage = permissionService.page(page, lqw);
+        return Result.ok(permissionPage);
+    }
+
+    @PostMapping("/addRole")
+    public Result<String> addRole(@RequestBody SysRole sysRole) {
+        roleService.save(sysRole);
+        return Result.ok("添加成功");
+    }
+
+    @PutMapping("/editRole")
+    public Result<String> editRole(@RequestBody SysRole sysRole) {
+        roleService.updateById(sysRole);
+        return Result.ok("编辑成功");
+    }
+
+    @DeleteMapping("/deleteRole")
+    public Result<String> deleteRole(@RequestParam(name = "id") String id) {
+        roleService.removeById(id);
+        return Result.ok("删除成功");
+    }
+
+    @PostMapping("/addPermission")
+    public Result<String> addPermission(@RequestBody SysPermission permission) {
+        permissionService.save(permission);
+        return Result.ok("添加成功");
+    }
+
+    @PutMapping("/editPermission")
+    public Result<String> editPermission(@RequestBody SysPermission permission) {
+        permissionService.updateById(permission);
+        return Result.ok("编辑成功");
+    }
+
+    @DeleteMapping("/deletePermission")
+    public Result<String> deletePermission(@RequestParam(name = "id") String id) {
+        rolePermissionService.removeById(id);
+        return Result.ok("删除成功");
+    }
+
+    @PostMapping("/addRolePermission")
+    public Result<String> addRolePermission(@RequestParam String roleId, @RequestParam String permissionId) {
+        SysRolePermission rolePermission = new SysRolePermission();
+        rolePermission.setRoleId(roleId);
+        rolePermission.setPermissionId(permissionId);
+        rolePermissionService.save(rolePermission);
+        return Result.ok("添加成功");
+    }
+
+    @DeleteMapping("/deleteRolePermission")
+    public Result<String> deleteRolePermission(@RequestParam(name = "id") String id) {
+        rolePermissionService.removeById(id);
+        return Result.ok("删除成功");
+    }
+
+    @PostMapping("/addUserRole")
+    public Result<String> addUserRole(@RequestParam String userId, @RequestParam String roleId) {
+        SysUserRole userRole = new SysUserRole();
+        userRole.setUserId(userId);
+        userRole.setRoleId(roleId);
+        userRoleService.save(userRole);
+        return Result.ok("添加成功");
+    }
+
+    @DeleteMapping("/deleteUserRole")
+    public Result<String> deleteUserRole(@RequestParam(name = "id") String id) {
+        userRoleService.removeById(id);
+        return Result.ok("删除成功");
+    }
 }
