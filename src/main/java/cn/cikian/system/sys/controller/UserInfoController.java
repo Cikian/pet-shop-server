@@ -39,8 +39,8 @@ public class UserInfoController {
 
     @GetMapping("/list")
     private Result<Page<UserVO>> queryUserByPage(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                      @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                    @RequestParam(name = "keyword", defaultValue = "") String keyword) {
+                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                                 @RequestParam(name = "keyword", defaultValue = "") String keyword) {
 
         Page<SysUser> page = new Page<>(pageNo, pageSize);
         LambdaQueryWrapper<SysUser> lqw = new LambdaQueryWrapper<>();
@@ -58,9 +58,10 @@ public class UserInfoController {
     }
 
     @GetMapping("/byRole")
-    private Result<Page<UserVO>> getUserInfo(@RequestParam String roleId,
-                                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
+    private Result<Page<UserVO>> getUserInfoByRole(@RequestParam String roleId,
+                                                   @RequestParam(name = "keyword", defaultValue = "") String keyword,
+                                                   @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                   @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
 
         LambdaQueryWrapper<SysUserRole> lqwSy = new LambdaQueryWrapper<>();
         lqwSy.eq(SysUserRole::getRoleId, roleId);
@@ -71,6 +72,40 @@ public class UserInfoController {
         List<String> userIds = userRoles.stream().map(SysUserRole::getUserId).toList();
         LambdaQueryWrapper<SysUser> lqw = new LambdaQueryWrapper<>();
         lqw.in(SysUser::getId, userIds);
+        if (keyword != null && !keyword.isEmpty()) {
+            lqw.and(lqw1 -> lqw1.like(SysUser::getUsername, keyword)
+                    .or().like(SysUser::getNickname, keyword)
+                    .or().like(SysUser::getPhone, keyword)
+                    .or().like(SysUser::getEmail, keyword)
+                    .or().like(SysUser::getSex, keyword)
+                    .or().like(SysUser::getUserSource, keyword));
+        }
+        Page<UserVO> userVoPage = userService.pageUserMode(new Page<>(pageNo, pageSize), lqw);
+        return Result.ok(userVoPage);
+    }
+
+    @GetMapping("/withoutRole")
+    private Result<Page<UserVO>> getUserInfoWithoutRole(@RequestParam String roleId,
+                                                        @RequestParam(name = "keyword", defaultValue = "") String keyword,
+                                                        @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                                        @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize) {
+
+        LambdaQueryWrapper<SysUserRole> lqwSy = new LambdaQueryWrapper<>();
+        lqwSy.eq(SysUserRole::getRoleId, roleId);
+        List<SysUserRole> userRoles = userRoleService.list(lqwSy);
+        LambdaQueryWrapper<SysUser> lqw = new LambdaQueryWrapper<>();
+        if (!userRoles.isEmpty()) {
+            List<String> userIds = userRoles.stream().map(SysUserRole::getUserId).toList();
+            lqw.notIn(SysUser::getId, userIds);
+        }
+        if (keyword != null && !keyword.isEmpty()) {
+            lqw.and(lqw1 -> lqw1.like(SysUser::getUsername, keyword)
+                    .or().like(SysUser::getNickname, keyword)
+                    .or().like(SysUser::getPhone, keyword)
+                    .or().like(SysUser::getEmail, keyword)
+                    .or().like(SysUser::getSex, keyword)
+                    .or().like(SysUser::getUserSource, keyword));
+        }
         Page<UserVO> userVoPage = userService.pageUserMode(new Page<>(pageNo, pageSize), lqw);
         return Result.ok(userVoPage);
     }

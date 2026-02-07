@@ -38,6 +38,7 @@ public class UserVO {
     private Integer sex;
     private String email;
     private String phone;
+    private String userSource;
     private Integer status;
     private LocalDateTime lastLoginTime;
     private String lastLoginIp;
