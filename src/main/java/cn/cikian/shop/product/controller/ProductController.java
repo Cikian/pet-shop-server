@@ -29,6 +29,8 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.upyun.UpException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,8 +49,13 @@ import java.util.stream.Collectors;
  * @since 2026-01-31 02:32
  */
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/goods")
+@Tag(name = "商品", description = "商品相关接口")
 public class ProductController {
     @Autowired
     private BusProductService productService;
@@ -69,6 +76,7 @@ public class ProductController {
     @Autowired
     private OssUtils ossUtils;
 
+    @Operation(summary = "查询商品分页列表", description = "根据分页参数和查询条件查询商品分页列表")
     @GetMapping(value = "/list")
     public Result<IPage<BusProduct>> queryPageList(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                    @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
@@ -83,11 +91,13 @@ public class ProductController {
         return Result.OK(pageList);
     }
 
+    @Operation(summary = "根据ID查询商品", description = "根据ID查询商品详情")
     @GetMapping("/{id}")
     public Result<BusProduct> query(@PathVariable Long id) {
         return Result.ok(productService.getById(id));
     }
 
+    @Operation(summary = "添加商品", description = "添加新的商品")
     @Transactional
     @PostMapping
     public Result<?> add(AddProductVo data) {
@@ -102,6 +112,7 @@ public class ProductController {
         return Result.ok("添加成功！");
     }
 
+    @Operation(summary = "编辑商品", description = "根据ID编辑商品信息")
     @Transactional
     @PutMapping
     public Result<?> edit(AddProductVo data) {
@@ -116,6 +127,7 @@ public class ProductController {
         return Result.ok("编辑成功！");
     }
 
+    @Operation(summary = "删除商品", description = "根据ID删除商品")
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Long id) {
         productService.removeById(id);
@@ -130,11 +142,7 @@ public class ProductController {
 
     private BusProduct extractProduct(AddProductVo data) {
         BusProduct product = new BusProduct();
-        product.setId(data.getId());
-        product.setName(data.getName());
-        product.setDescription(data.getDescription());
-        product.setCategoryId(data.getCategoryId());
-        product.setStatus(data.getStatus());
+        BeanUtils.copyProperties(data, product);
 
         MultipartFile mainImg = data.getMainImg();
         if (mainImg != null) {

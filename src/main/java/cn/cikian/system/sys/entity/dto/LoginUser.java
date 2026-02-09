@@ -2,6 +2,7 @@ package cn.cikian.system.sys.entity.dto;
 
 import cn.cikian.system.sys.entity.SysUser;
 import com.alibaba.fastjson.annotation.JSONField;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,10 +25,14 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Schema(name = "登录用户视图")
 public class LoginUser implements UserDetails {
+    @Schema(description = "用户实体")
     private SysUser user;
+    @Schema(description = "权限列表")
     private List<String> permissions;
     @JSONField(serialize = false)
+    @Schema(description = "Security权限列表")
     private List<GrantedAuthority> authorities;
 
     public LoginUser(SysUser user) {

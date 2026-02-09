@@ -1,5 +1,6 @@
 package cn.cikian.system.sys.controller;
 
+import cn.cikian.system.core.exception.CikException;
 import cn.cikian.system.core.utils.RedisCache;
 import cn.cikian.system.sys.entity.SysUser;
 import cn.cikian.system.sys.entity.dto.LoginRequest;
@@ -19,6 +20,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -60,6 +63,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Tag(name = "认证", description = "认证相关接口")
 public class AuthController {
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
@@ -96,6 +100,7 @@ public class AuthController {
     }
 
 
+    @Operation(summary = "用户登录", description = "用户使用用户名和密码进行登录，成功后返回JWT令牌")
     @PostMapping("/login")
     public Result<LoginResponse> login(
             @Valid @RequestBody LoginRequest loginRequest,
@@ -107,7 +112,7 @@ public class AuthController {
         // 认证用户
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
         if (Objects.isNull(authenticate)) {
-            throw new RuntimeException("用户名或密码错误！");
+            throw new CikException("用户名或密码错误！");
         }
         SecurityContextHolder.getContext().setAuthentication(authenticate);
 
@@ -138,9 +143,10 @@ public class AuthController {
         return Result.ok(loginResponse);
     }
 
+    @Operation(summary = "用户注册", description = "新用户注册，注册成功后可以使用用户名和密码登录，返回结果同登录接口")
     @PostMapping("/register")
-    public Result<UserVO> register(
-            @Valid @RequestBody RegisterRequest registerRequest) {
+    public Result<?> register(
+            @Valid @RequestBody RegisterRequest registerRequest, HttpServletRequest request) {
         log.info("用户注册: {}", registerRequest.getUsername());
 
         // 验证码验证
@@ -151,9 +157,42 @@ public class AuthController {
 
         log.info("用户注册成功: {}", registerRequest.getUsername());
 
-        return Result.ok(userVO, "注册成功");
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(registerRequest.getUsername(), registerRequest.getPassword());
+        // 认证用户
+        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+        if (Objects.isNull(authenticate)) {
+            throw new RuntimeException("用户名或密码错误！");
+        }
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+
+        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+        String userId = loginUser.getUser().getId();
+        // authenticate存入redis
+        redisCache.setCacheObject("login:" + userId, loginUser);
+        // 生成token
+        String accessToken = JwtUtil.createJWT(JSONObject.toJSONString(loginUser));
+        // 获取权限
+        List<String> authorities = loginUser.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        // 构建响应
+        LoginResponse loginResponse = LoginResponse.builder()
+                .accessToken(accessToken)
+                .tokenType("Bearer")
+                .user(new UserVO(loginUser))
+                .authorities(authorities)
+                .build();
+
+        // 更新最后登录时间和IP
+        String clientIp = getClientIp(request);
+        userService.updateLastLogin(userId, clientIp);
+        log.info("用户注册后登录成功: {}，登录IP: {}", registerRequest.getUsername(), clientIp);
+
+        return Result.ok(loginResponse, "注册成功");
     }
 
+    @Operation(summary = "获取当前用户信息", description = "获取当前已登录用户的详细信息")
     @GetMapping("/me")
     public Result<UserVO> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -165,6 +204,7 @@ public class AuthController {
         return Result.ok(userVO, "获取成功");
     }
 
+    @Operation(summary = "用户登出", description = "用户登出，清除登录状态和缓存的用户信息")
     @PostMapping("/logout")
     public Result<Void> logout() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -181,6 +221,7 @@ public class AuthController {
         return Result.OK("登出成功");
     }
 
+    @Operation(summary = "检查用户名是否存在", description = "检查指定用户名是否已被注册，返回true表示存在，false表示不存在")
     @GetMapping("/check-username")
     public Result<Boolean> checkUsername(
             @RequestParam String username) {
@@ -188,6 +229,7 @@ public class AuthController {
         return Result.ok(exists, "查询成功");
     }
 
+    @Operation(summary = "检查电子邮件是否存在", description = "检查指定电子邮件是否已被注册，返回true表示存在，false表示不存在")
     @GetMapping("/check-email")
     public Result<Boolean> checkEmail(
             @RequestParam String email) {

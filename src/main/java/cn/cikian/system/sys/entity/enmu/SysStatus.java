@@ -17,7 +17,7 @@ import java.util.Map;
  */
 @Getter
 @Schema(name = "HTTP状态码枚举")
-public enum HttpStatus {
+public enum SysStatus {
     // 1xx 信息性状态码
     CONTINUE(100, "Continue", "服务器已收到请求的初始部分，客户端可以继续发送剩余部分"),
     SWITCHING_PROTOCOLS(101, "Switching Protocols", "服务器同意切换协议，如从HTTP切换到WebSocket"),
@@ -44,10 +44,10 @@ public enum HttpStatus {
     // 4xx 客户端错误状态码
     BAD_REQUEST(400, "Bad Request", "请求无效，服务器无法理解"),
     UNAUTHORIZED(401, "Unauthorized", "请求需要身份验证"),
-    BAD_PWD(401, "Unauthorized", "密码错误"),
-    NO_USER(401, "Unauthorized", "用户名不存在"),
-    USER_BAD(401, "Unauthorized", "用户名或密码不正确"),
-    NEED_LOGIN(401, "Unauthorized", "登录过期，请重新登录"),
+    BAD_PWD(461, "Unauthorized", "密码错误"),
+    NO_USER(462, "Unauthorized", "用户名不存在，请检查用户名或邮箱输入是否正确"),
+    USER_BAD(463, "Unauthorized", "用户名或密码不正确"),
+    NEED_LOGIN(430, "Unauthorized", "登录过期，请重新登录"),
     PAYMENT_REQUIRED(402, "Payment Required", "保留状态码，用于未来的支付系统"),
     FORBIDDEN(403, "Forbidden", "服务器拒绝访问请求的资源"),
     NOT_FOUND(404, "Not Found", "请求的资源不存在"),
@@ -74,22 +74,24 @@ public enum HttpStatus {
     GATEWAY_TIMEOUT(504, "Gateway Timeout", "服务器作为网关或代理，请求超时"),
     HTTP_VERSION_NOT_SUPPORTED(505, "HTTP Version Not Supported", "服务器不支持请求的HTTP版本"),
     INSUFFICIENT_STORAGE(507, "Insufficient Storage", "服务器存储空间不足"),
-    LOOP_DETECTED(508, "Loop Detected", "服务器检测到无限循环");
+    LOOP_DETECTED(508, "Loop Detected", "服务器检测到无限循环"),
+
+    UNKNOW(999, "Unknow", "未知错误");
 
     private final int code;
     private final String name;
     private final String description;
 
     // 用于快速查找
-    private static final Map<Integer, HttpStatus> CODE_MAP = new HashMap<>();
+    private static final Map<Integer, SysStatus> CODE_MAP = new HashMap<>();
 
     static {
-        for (HttpStatus status : values()) {
+        for (SysStatus status : values()) {
             CODE_MAP.put(status.code, status);
         }
     }
 
-    HttpStatus(int code, String name, String description) {
+    SysStatus(int code, String name, String description) {
         this.code = code;
         this.name = name;
         this.description = description;
@@ -100,7 +102,7 @@ public enum HttpStatus {
      * @param code 状态码
      * @return HttpStatus枚举，如果不存在返回null
      */
-    public static HttpStatus getByCode(int code) {
+    public static SysStatus getByCode(int code) {
         return CODE_MAP.get(code);
     }
 

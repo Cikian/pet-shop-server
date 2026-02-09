@@ -2,6 +2,7 @@ package cn.cikian.system.sys.controller;
 
 import cn.cikian.system.sys.entity.vo.Result;
 import cn.cikian.system.sys.exception.CikException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,7 @@ import java.io.IOException;
  */
 @Slf4j
 @RestController
+@Tag(name = "测试异常", description = "测试异常相关接口")
 @RequestMapping("/api/v1/test/exception")
 public class TestExceptionController {
 

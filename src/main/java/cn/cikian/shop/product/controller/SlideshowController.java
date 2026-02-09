@@ -52,8 +52,14 @@ import java.util.stream.Collectors;
  * @since 2026-01-31 02:32
  */
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/home/slide")
+@Tag(name = "首页轮播图", description = "首页轮播图相关接口")
 public class SlideshowController {
     @Autowired
     private BusProductService productService;
@@ -64,15 +70,7 @@ public class SlideshowController {
     @Autowired
     private OssUtils ossUtils;
 
-    @GetMapping
-    public Result<?> queryList() {
-        LambdaQueryWrapper<HomeSlideshow> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(HomeSlideshow::getStatus, true);
-        lqw.orderByAsc(HomeSlideshow::getSortOrder);
-        List<HomeSlideshow> list = homeSlideshowService.list(lqw);
-        return Result.OK(list);
-    }
-
+    @Operation(summary = "添加首页轮播图", description = "添加新的首页轮播图")
     @PostMapping
     public Result<?> add(
             @RequestPart("data") Slideshow slideshow, // 接收 JSON 字符串并转为对象
@@ -97,6 +95,7 @@ public class SlideshowController {
         return Result.ok("添加成功！");
     }
 
+    @Operation(summary = "编辑首页轮播图", description = "根据ID编辑首页轮播图信息")
     @PutMapping
     public Result<?> edit(
             @RequestPart("data") Slideshow slideshow, // 接收 JSON 字符串并转为对象

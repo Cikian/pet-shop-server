@@ -2,7 +2,7 @@ package cn.cikian.shop.product.entity;
 
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -17,24 +17,26 @@ import java.io.Serializable;
 
 @Data
 @TableName("vo_home_slideshow")
+@Schema(name = "首页轮播图视图实体")
 public class HomeSlideshow implements Serializable {
     private String id;
-    @ApiModelProperty("商品ID")
+    @Schema(description = "商品ID")
     private String productId;
-    @ApiModelProperty("排序")
+    @Schema(description = "排序")
     private Integer sortOrder;
-    @ApiModelProperty("商品名称")
+    @Schema(description = "商品名称")
     private String name;
-    @ApiModelProperty("商品描述")
+    @Schema(description = "商品描述")
     private String description;
-    @ApiModelProperty("展示图")
+    @Schema(description = "展示图")
     private String displayImg;
-    @ApiModelProperty("主图")
+    @Schema(description = "主图")
     private String mainImg;
-    @ApiModelProperty("商品分类")
+    @Schema(description = "商品分类")
     private String categoryId;
-    @ApiModelProperty("状态：1-启用")
+    @Schema(description = "状态：1-启用")
     private Boolean status;
     @TableLogic
+    @Schema(description = "删除标记")
     private Boolean delFlag;
 }

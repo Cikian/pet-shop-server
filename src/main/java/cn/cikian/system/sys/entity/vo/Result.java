@@ -2,7 +2,9 @@ package cn.cikian.system.sys.entity.vo;
 
 
 import cn.cikian.system.sys.entity.enmu.CommonConstant;
+import cn.cikian.system.sys.entity.enmu.SysStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,6 +18,7 @@ import java.io.Serializable;
  */
 
 @Data
+@Schema(name = "统一响应结果实体")
 public class Result<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -23,26 +26,31 @@ public class Result<T> implements Serializable {
     /**
      * 成功标志
      */
+    @Schema(description = "成功标志")
     private boolean success = true;
 
     /**
      * 返回处理消息
      */
+    @Schema(description = "返回处理消息")
     private String message = "";
 
     /**
      * 返回代码
      */
+    @Schema(description = "返回代码")
     private Integer code = 0;
 
     /**
      * 返回数据对象 data
      */
+    @Schema(description = "返回数据对象")
     private T result;
 
     /**
      * 时间戳
      */
+    @Schema(description = "时间戳")
     private long timestamp = System.currentTimeMillis();
 
     public Result() {
@@ -158,6 +166,32 @@ public class Result<T> implements Serializable {
         Result<T> r = new Result<T>();
         r.setCode(code);
         r.setMessage(msg);
+        r.setSuccess(false);
+        return r;
+    }
+
+    public static <T> Result<T> error(int code, String msg, T data) {
+        Result<T> r = new Result<T>();
+        r.setCode(code);
+        r.setResult(data);
+        r.setMessage(msg);
+        r.setSuccess(false);
+        return r;
+    }
+
+    public static <T> Result<T> error(SysStatus sysStatus) {
+        Result<T> r = new Result<T>();
+        r.setCode(sysStatus.code());
+        r.setMessage(sysStatus.message());
+        r.setSuccess(false);
+        return r;
+    }
+
+    public static <T> Result<T> error(SysStatus sysStatus, T data) {
+        Result<T> r = new Result<T>();
+        r.setCode(sysStatus.code());
+        r.setMessage(sysStatus.message());
+        r.setResult(data);
         r.setSuccess(false);
         return r;
     }

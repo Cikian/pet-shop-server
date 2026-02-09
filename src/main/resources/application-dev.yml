@@ -5,6 +5,16 @@ server:
   servlet:
     context-path:
 
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    disable-swagger-default-url: false
+    display-request-duration: true
+
 spring:
   servlet:
     multipart:

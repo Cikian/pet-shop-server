@@ -81,6 +81,7 @@ public class SecurityConfig {
                                 "/api/v1/file/download/**",
                                 "/api/v1/products/public/**",
                                 "/api/v1/categories/public/**",
+                                "/api/v1/email/**",
                                 "/api/v1/test/**",
                                 "/api/test/**",
                                 "/oauth2/**",

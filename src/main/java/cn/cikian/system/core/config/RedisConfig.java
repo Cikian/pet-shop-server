@@ -8,11 +8,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * @Title: RedisConfig
- * @Author Cikian
- * @Package cn.cikian.shop.core.config
- * @Date 2026/1/28 23:24
- * @description: pet-shop-server:
+ * @author Cikian
+ * @version 1.0
+ * @implNote
+ * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
+ * @since 2026-02-10 01:25
  */
 
 @Configuration
