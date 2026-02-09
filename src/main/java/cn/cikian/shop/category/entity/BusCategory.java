@@ -30,9 +30,14 @@ public class BusCategory implements Serializable {
      */
     private String cateCode;
     /**
+     * 图片访问地址
+     */
+    private String imgUrl;
+    /**
      * 1-启用
      */
     private Integer status;
+
     @TableLogic
     private Boolean delFlag;
 }

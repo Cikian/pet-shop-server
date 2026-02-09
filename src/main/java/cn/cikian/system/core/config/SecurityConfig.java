@@ -83,7 +83,8 @@ public class SecurityConfig {
                                 "/api/v1/categories/public/**",
                                 "/api/v1/test/**",
                                 "/api/test/**",
-                                "/oauth2/**"
+                                "/oauth2/**",
+                                "/api/home/**"
                         ).permitAll()
 
                         // 需要认证但不需要特定权限的接口

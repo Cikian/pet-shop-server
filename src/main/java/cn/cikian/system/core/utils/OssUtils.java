@@ -32,36 +32,51 @@ public class OssUtils {
     private String uri;
 
     public String upToOss(String path, byte[] data) throws UpException, IOException {
-        upToOss(path, data, null);
-        return uri + path;
+        return upToOss(path, data, null);
     }
 
-    public Response upToOss(String path, File file) throws UpException, IOException {
+    public String upToOss(String path, File file) throws UpException, IOException {
         return upToOss(path, file, null);
     }
 
-    public Response upToOss(String path, InputStream stream) throws UpException, IOException {
+    public String upToOss(String path, InputStream stream) throws UpException, IOException {
         return upToOss(path, stream, null);
     }
 
-    public Response upToOss(String path, byte[] data, Map<String, String> params) throws UpException, IOException {
-        if (params == null) {
-            params = new HashMap<>();
+    public String upToOss(String path, byte[] data, Map<String, String> params) throws UpException, IOException {
+        path = getFilePathAndInitMap(path, params);
+        try (Response response = upManager.writeFile(path, data, params)) {
+            return uri + path;
         }
-        return upManager.writeFile(path, data, params);
     }
 
-    public Response upToOss(String path, File file, Map<String, String> params) throws UpException, IOException {
-        if (params == null) {
-            params = new HashMap<>();
+    public String upToOss(String path, File file, Map<String, String> params) throws UpException, IOException {
+        path = getFilePathAndInitMap(path, params);
+        try (Response response = upManager.writeFile(path, file, params)) {
+            return uri + path;
         }
-        return upManager.writeFile(path, file, params);
     }
 
-    public Response upToOss(String path, InputStream stream, Map<String, String> params) throws UpException, IOException {
+    public String upToOss(String path, InputStream stream, Map<String, String> params) throws UpException, IOException {
+        path = getFilePathAndInitMap(path, params);
+        try (Response response = upManager.writeFile(path, stream, params)) {
+            return uri + path;
+        }
+    }
+
+    private String getFilePathAndInitMap(String path, Map<String, String> params) {
         if (params == null) {
             params = new HashMap<>();
         }
-        return upManager.writeFile(path, stream, params);
+        // 在文件名后加时间戳后缀
+        if (path != null) {
+            String[] split = path.split("\\.");
+            if (split.length > 1) {
+                split[split.length - 2] += "_" + System.currentTimeMillis();
+                path = String.join(".", split);
+            }
+        }
+
+        return path;
     }
 }

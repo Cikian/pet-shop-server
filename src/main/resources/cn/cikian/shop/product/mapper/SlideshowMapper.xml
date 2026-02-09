@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.cikian.shop.product.mapper.SlideshowMapper">
+
+    <resultMap id="BaseResultMap" type="cn.cikian.shop.product.entity.Slideshow">
+            <id property="id" column="id" />
+            <result property="productId" column="product_id" />
+            <result property="status" column="status" />
+            <result property="sortOrder" column="sort_order" />
+            <result property="delFlag" column="del_flag" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,product_id,status,sort_order,del_flag
+    </sql>
+</mapper>
