@@ -1,5 +1,6 @@
 package cn.cikian.system.sys.entity.enmu;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.Map;
  * 5xx: 服务器错误状态码
  */
 @Getter
+@Schema(name = "HTTP状态码枚举")
 public enum HttpStatus {
     // 1xx 信息性状态码
     CONTINUE(100, "Continue", "服务器已收到请求的初始部分，客户端可以继续发送剩余部分"),
