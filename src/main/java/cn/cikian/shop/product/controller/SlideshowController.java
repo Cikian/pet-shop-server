@@ -74,7 +74,7 @@ public class SlideshowController {
     @PostMapping
     public Result<?> add(
             @RequestPart("data") Slideshow slideshow, // 接收 JSON 字符串并转为对象
-            @RequestPart("file") MultipartFile file      // 接收文件
+            @RequestPart(value = "file", required = false) MultipartFile file      // 接收文件
     ) {
         if (file != null) {
             String originalFilename = file.getOriginalFilename();

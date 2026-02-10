@@ -22,6 +22,8 @@ public class HomeSlideshow implements Serializable {
     private String id;
     @Schema(description = "商品ID")
     private String productId;
+    @Schema(description = "轮播标题")
+    private String title;
     @Schema(description = "排序")
     private Integer sortOrder;
     @Schema(description = "商品名称")
@@ -34,6 +36,8 @@ public class HomeSlideshow implements Serializable {
     private String mainImg;
     @Schema(description = "商品分类")
     private String categoryId;
+    @Schema(description = "按钮文字")
+    private String btnText;
     @Schema(description = "状态：1-启用")
     private Boolean status;
     @TableLogic

@@ -7,6 +7,9 @@ import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Cikian
  * @version 1.0
@@ -22,6 +25,10 @@ public class SpringDocConfig {
         contact.setName("Cikian");
         contact.setUrl("https://www.cikian.cn");
         contact.setEmail("support.cikian.cn");
+        Map<String, Object> ext = new HashMap<>();
+        ext.put("Phone", "18712749208");
+        ext.put("QQ", "2926066494");
+        contact.setExtensions(ext);
 
         return new OpenAPI().info(new Info()
                         .title("PetShop API文档")
@@ -30,7 +37,7 @@ public class SpringDocConfig {
                         .version("v1.0.0"))
                 .externalDocs(new ExternalDocumentation()
                         .description("更多文档")
-                        .url("https://springdoc.org"));
+                        .url("https://docs.cikian.cn"));
     }
 
 }

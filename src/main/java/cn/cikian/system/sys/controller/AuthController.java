@@ -81,25 +81,6 @@ public class AuthController {
     @Autowired
     private OAuth2AuthorizedClientService authorizedClientService;
 
-    @RequestMapping("/hello")
-    @PreAuthorize("hasAuthority('test')")
-    public String hello() {
-        return "hello";
-    }
-
-    @RequestMapping("/hello2")
-    @PreAuthorize("hasAuthority('test:hello')")
-    public String hello2() {
-        return "hello2";
-    }
-
-    @RequestMapping("/hello3")
-    @PreAuthorize("hasRole('TESTER')")
-    public String hello3() {
-        return "hello3";
-    }
-
-
     @Operation(summary = "用户登录", description = "用户使用用户名和密码进行登录，成功后返回JWT令牌")
     @PostMapping("/login")
     public Result<LoginResponse> login(

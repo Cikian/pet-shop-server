@@ -16,6 +16,7 @@ springdoc:
     display-request-duration: true
 
 spring:
+
   servlet:
     multipart:
       max-file-size: 100MB
