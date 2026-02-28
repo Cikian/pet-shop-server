@@ -6,18 +6,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author Cikian
@@ -29,81 +25,53 @@ import java.util.List;
 
 @Data
 @TableName("sys_user")
+@Schema(name = "用户实体")
 public class SysUser implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    /**
-     * id
-     */
     @TableId(type = IdType.ASSIGN_ID)
     private String id;
 
-    /**
-     * 用户名
-     */
+    @Schema(description = "用户名")
     private String username;
 
-    /**
-     * 密码
-     */
+    @Schema(description = "密码")
     private String password;
 
-    /**
-     * 昵称
-     */
+    @Schema(description = "昵称")
     private String nickname;
 
-    /**
-     * 头像
-     */
+    @Schema(description = "头像")
     private String avatar;
 
-    /**
-     * 生日
-     */
+    @Schema(description = "生日")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date birthday;
 
-    /**
-     * 性别（1：男 2：女）
-     */
+    @Schema(description = "性别（1：男 2：女）")
     private Integer sex;
 
-    /**
-     * 电子邮件
-     */
+    @Schema(description = "电子邮件")
     private String email;
 
-    /**
-     * 登录来源
-     */
+    @Schema(description = "登录来源")
     private String userSource;
 
-    /**
-     * 电话
-     */
+    @Schema(description = "电话")
     private String phone;
 
-    /**
-     * 状态（0：正常 1：冻结）
-     */
+    @Schema(description = "状态（0：正常 1：冻结）")
     private Integer status;
 
-    /**
-     * 删除标记
-     */
+    @Schema(description = "删除标记")
     @TableLogic
-    private Integer delFlag;
+    private Boolean delFlag;
 
-    /**
-     * 上次登录时间
-     */
+    @Schema(description = "上次登录时间")
     private LocalDateTime lastLoginTime;
 
-    /**
-     * 上次登录IP
-     */
+    @Schema(description = "上次登录IP")
     private String lastLoginIp;
     private LocalDateTime createTime;
 

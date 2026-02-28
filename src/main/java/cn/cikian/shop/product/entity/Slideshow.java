@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -19,23 +19,25 @@ import java.io.Serializable;
 
 @Data
 @TableName("bus_slideshow")
+@Schema(name = "首页轮播图配置实体")
 public class Slideshow implements Serializable {
     @TableId(type = IdType.ASSIGN_ID)
     private String id;
-    @ApiModelProperty("商品id")
+    @Schema(description = "商品id")
     private String productId;
-    @ApiModelProperty("1-启用 0-禁用")
+    @Schema(description = "1-启用 0-禁用")
     private String status;
-    @ApiModelProperty("展示图")
+    @Schema(description = "展示图")
     private String displayImg;
-    @ApiModelProperty("标题")
+    @Schema(description = "标题")
     private String title;
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     private String description;
-    @ApiModelProperty("按钮文字")
+    @Schema(description = "按钮文字")
     private String btnText;
-    @ApiModelProperty("排序")
+    @Schema(description = "排序")
     private Integer sortOrder;
     @TableLogic
+    @Schema(description = "删除标记")
     private String delFlag;
 }

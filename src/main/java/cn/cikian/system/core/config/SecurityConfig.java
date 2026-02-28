@@ -81,10 +81,12 @@ public class SecurityConfig {
                                 "/api/v1/file/download/**",
                                 "/api/v1/products/public/**",
                                 "/api/v1/categories/public/**",
+                                "/api/v1/email/**",
                                 "/api/v1/test/**",
                                 "/api/test/**",
                                 "/oauth2/**",
-                                "/api/home/**"
+                                "/api/home/**",
+                                "/api/goods/home/**"
                         ).permitAll()
 
                         // 需要认证但不需要特定权限的接口

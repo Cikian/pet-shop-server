@@ -1,7 +1,10 @@
 package cn.cikian.shop.product.service;
 
 import cn.cikian.shop.product.entity.BusProduct;
+import cn.cikian.shop.product.entity.vo.HomeProductVo;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * @author Cikian
@@ -11,5 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2026-01-28 16:28
  */
 public interface BusProductService extends IService<BusProduct> {
-
+    List<HomeProductVo> buildHomeRecommendList(List<BusProduct> products);
 }

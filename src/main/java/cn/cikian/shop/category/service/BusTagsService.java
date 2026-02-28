@@ -1,7 +1,10 @@
 package cn.cikian.shop.category.service;
 
 import cn.cikian.shop.category.entity.BusTags;
+import cn.cikian.shop.category.entity.ProductTag;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * @author Cikian
@@ -12,5 +15,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 
 public interface BusTagsService extends IService<BusTags> {
-
+    List<ProductTag> getTagsByProduct(List<String> productIds);
+    List<ProductTag> getTagsByProduct(String productId);
 }
