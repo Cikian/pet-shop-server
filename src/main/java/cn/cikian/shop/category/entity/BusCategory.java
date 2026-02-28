@@ -32,11 +32,6 @@ public class BusCategory implements Serializable {
     /**
      *
      */
-    @Schema(description = "描述")
-    private String description;
-    /**
-     *
-     */
     @Schema(description = "分类编码")
     private String cateCode;
     /**
