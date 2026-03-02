@@ -3,6 +3,9 @@ package cn.cikian.shop.sku.mapper;
 import cn.cikian.shop.sku.entity.BusSku;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
  * @author Cikian
@@ -15,6 +18,8 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface BusSkusMapper extends BaseMapper<BusSku> {
 
+    @Select("select * from bus_sku where product_id = #{productId} and del_flag = 0")
+    List<BusSku> queryByProductId(String productId);
 }
 
 

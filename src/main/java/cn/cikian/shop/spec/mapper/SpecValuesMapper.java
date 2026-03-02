@@ -3,6 +3,9 @@ package cn.cikian.shop.spec.mapper;
 import cn.cikian.shop.spec.entity.SpecValues;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
  * @author Cikian
@@ -14,7 +17,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface SpecValuesMapper extends BaseMapper<SpecValues> {
-
+    @Select("select * from bus_spec_values where spec_key_id in (${specKeyIds})")
+    List<SpecValues> queryBySpecKeyIds(List<String> specKeyIds);
 }
 
 

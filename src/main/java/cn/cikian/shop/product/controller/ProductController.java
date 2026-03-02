@@ -7,6 +7,7 @@ import cn.cikian.shop.category.service.BusTagsService;
 import cn.cikian.shop.category.service.ProductTagService;
 import cn.cikian.shop.product.entity.ProductImg;
 import cn.cikian.shop.product.entity.vo.AddProductVo;
+import cn.cikian.shop.product.entity.vo.Product4Detail;
 import cn.cikian.shop.product.service.BusProductService;
 import cn.cikian.shop.product.service.ProductImgService;
 import cn.cikian.shop.sku.entity.vo.AddSkuVo;
@@ -157,6 +158,18 @@ public class ProductController {
         product.setDiscount(!product.getDiscount());
         productService.updateById(product);
         return Result.ok("修改成功！");
+    }
+
+    @Operation(summary = "根据商品ID获取商品详情", description = "根据商品ID获取商品详情")
+    @GetMapping("/detail/{productId}")
+    public Result<?> getProductDetailById(@PathVariable String productId) {
+        BusProduct product = productService.getById(productId);
+        if (product == null) {
+            throw new CikException("商品不存在");
+        }
+
+        Product4Detail productDetail = productService.getProductDetail(product);
+        return Result.ok(productDetail);
     }
 
     private void getQueryWrapper(LambdaQueryWrapper<BusProduct> lqw, Map<String, String[]> map) {
