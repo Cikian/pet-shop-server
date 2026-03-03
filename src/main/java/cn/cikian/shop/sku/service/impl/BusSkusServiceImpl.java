@@ -45,6 +45,7 @@ public class BusSkusServiceImpl extends ServiceImpl<BusSkusMapper, BusSku> imple
         for (BusSku sku : skus) {
             AddSkuVo addSkuVo = new AddSkuVo();
             BeanUtils.copyProperties(sku, addSkuVo);
+            addSkuVo.setImageUrl(sku.getImage());
             addSkuVo.setSkuSpecs(skuSpecs.stream().filter(s -> s.getSkuId().equals(sku.getId())).toList());
             resList.add(addSkuVo);
         }

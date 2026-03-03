@@ -24,7 +24,9 @@ import cn.cikian.shop.spec.service.SpecKeysService;
 import cn.cikian.shop.spec.service.SpecValuesService;
 import cn.cikian.system.core.exception.CikException;
 import cn.cikian.system.core.utils.OssUtils;
+import cn.cikian.system.sys.entity.dto.LoginUser;
 import cn.cikian.system.sys.entity.vo.Result;
+import cn.cikian.system.sys.utils.AuthUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -295,6 +297,22 @@ public class ProductController {
             BeanUtils.copyProperties(sku, busSku);
             busSku.setId(skuId);
             busSku.setProductId(productId);
+
+            MultipartFile image = sku.getImage();
+            if (image == null) {
+                continue;
+            }
+            String imgName = image.getOriginalFilename();
+            imgName = imgName.replaceAll("\\s+", "");
+
+            try {
+                byte[] bytes = image.getBytes();
+                String fileUrl = ossUtils.upToOss("/petShop/sku/" + imgName, bytes);
+                busSku.setImage(fileUrl);
+            } catch (IOException | UpException e) {
+                throw new RuntimeException(e);
+            }
+
             skuList.add(busSku);
 
             List<SkuSpec> skuSpecs = sku.getSkuSpecs();
@@ -563,7 +581,7 @@ public class ProductController {
     }
 
     private void handleSpecValuesForUpdate(AddSpecVo spec, String specKeyId, List<SpecValues> specValuesToSave,
-                                          List<SpecValues> specValuesToUpdate, Map<String, String> resMap) {
+                                           List<SpecValues> specValuesToUpdate, Map<String, String> resMap) {
         List<SpecValues> specValueList = spec.getSpecValueList();
         if (specValueList == null) {
             // 如果没有规格值，删除所有现有规格值
@@ -682,6 +700,22 @@ public class ProductController {
                 BeanUtils.copyProperties(sku, busSku);
                 busSku.setId(newSkuId);
                 busSku.setProductId(productId);
+                // 图片
+                MultipartFile image = sku.getImage();
+                if (image == null) {
+                    continue;
+                }
+                String imgName = image.getOriginalFilename();
+                imgName = imgName.replaceAll("\\s+", "");
+
+                try {
+                    byte[] bytes = image.getBytes();
+                    String fileUrl = ossUtils.upToOss("/petShop/sku/" + imgName, bytes);
+                    busSku.setImage(fileUrl);
+                } catch (IOException | UpException e) {
+                    throw new RuntimeException(e);
+                }
+
                 skusToSave.add(busSku);
 
                 // 处理SKU规格

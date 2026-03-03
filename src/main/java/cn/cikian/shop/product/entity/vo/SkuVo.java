@@ -24,5 +24,6 @@ public class SkuVo {
     private BigDecimal price;
     private BigDecimal originalPrice;
     private Integer stock;
+    private String image;
     private Boolean isDefault;
 }

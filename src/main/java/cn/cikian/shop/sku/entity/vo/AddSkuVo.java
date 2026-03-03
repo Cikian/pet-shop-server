@@ -4,6 +4,7 @@ package cn.cikian.shop.sku.entity.vo;
 import cn.cikian.shop.sku.entity.SkuSpec;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -42,6 +43,12 @@ public class AddSkuVo {
     // 库存预警值
     @Schema(description = "库存预警值")
     private Integer warningStock;
+    // sku图片
+    @Schema(description = "sku图片")
+    private MultipartFile image;
+    // sku图片链接
+    @Schema(description = "sku图片链接")
+    private String imageUrl;
     // 是否为默认SKU
     @Schema(description = "是否为默认SKU")
     private Boolean isDefault;

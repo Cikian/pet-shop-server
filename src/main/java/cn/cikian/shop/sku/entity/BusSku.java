@@ -62,6 +62,11 @@ public class BusSku implements Serializable {
     @Schema(description = "库存预警值")
     private Integer warningStock;
     /**
+     * sku图片
+     */
+    @Schema(description = "sku图片")
+    private String image;
+    /**
      * 是否为默认SKU
      */
     @Schema(description = "是否为默认SKU")
