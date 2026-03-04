@@ -2,7 +2,9 @@ package cn.cikian.shop.cart.controller;
 
 
 import cn.cikian.shop.cart.entity.BusCart;
+import cn.cikian.shop.cart.entity.CartVo;
 import cn.cikian.shop.cart.service.BusCartService;
+import cn.cikian.shop.cart.service.CartVoService;
 import cn.cikian.shop.category.entity.BusTags;
 import cn.cikian.shop.category.entity.ProductTag;
 import cn.cikian.shop.category.service.ProductTagService;
@@ -39,11 +41,13 @@ import java.util.Map;
 public class CartController {
     @Autowired
     private BusCartService cartService;
+    @Autowired
+    private CartVoService cartVoService;
 
 
     @Operation(summary = "购物车分页列表", description = "根据分页参数和查询条件查询购物车分页列表")
     @GetMapping(value = "/list")
-    public Result<IPage<BusCart>> queryPageList(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+    public Result<IPage<CartVo>> queryPageList(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
                                                 @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                                 HttpServletRequest req) {
         LoginUser loginUser = AuthUtils.getLoginUser();
@@ -51,12 +55,12 @@ public class CartController {
             throw new CikException(SysStatus.NEED_LOGIN);
         }
 
-        LambdaQueryWrapper<BusCart> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(BusCart::getUserId, loginUser.getUser().getId());
-        lqw.orderByDesc(BusCart::getCreateTime);
+        LambdaQueryWrapper<CartVo> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(CartVo::getUserId, loginUser.getUser().getId());
+        lqw.orderByDesc(CartVo::getCreateTime);
 
-        Page<BusCart> page = new Page<>(pageNo, pageSize);
-        IPage<BusCart> pageList = cartService.page(page, lqw);
+        Page<CartVo> page = new Page<>(pageNo, pageSize);
+        IPage<CartVo> pageList = cartVoService.page(page, lqw);
         return Result.OK(pageList);
     }
 

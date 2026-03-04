@@ -25,7 +25,7 @@ import java.util.Date;
 public class BusCart implements Serializable {
 
     @TableId(type = IdType.ASSIGN_ID)
-    @Schema(description = "分类 ID")
+    @Schema(description = "ID")
     private String id;
     /**
      * 用户ID
