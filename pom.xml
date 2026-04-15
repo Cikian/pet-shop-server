@@ -241,6 +241,12 @@
             <version>4.2.3</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
         <!-- 邮件 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -296,16 +302,6 @@
                 <profile.name>dev</profile.name>
             </properties>
         </profile>
-        <!-- 测试 -->
-<!--        <profile>-->
-<!--            <id>test</id>-->
-<!--            <properties>-->
-<!--                &lt;!&ndash;当前环境&ndash;&gt;-->
-<!--                <profile.name>test</profile.name>-->
-<!--                &lt;!&ndash;Nacos服务地址&ndash;&gt;-->
-<!--                <config.server-addr>jeecg-boot-nacos:8848</config.server-addr>-->
-<!--            </properties>-->
-<!--        </profile>-->
         <!-- 生产 -->
         <profile>
             <id>prod</id>
