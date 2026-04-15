@@ -1,4 +1,4 @@
-package cn.cikian.shop.sku.entity;
+package cn.cikian.shop.cart.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -9,38 +9,44 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @author Cikian
  * @version 1.0
  * @implNote
  * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
- * @since 2026-01-28 16:28
+ * @since 2026-03-04 16:55
  */
 
 @Data
-@TableName("bus_sku")
-@Schema(name = "商品SKU实体")
-public class BusSku implements Serializable {
+@TableName("vo_cart_product")
+@Schema(name = "购物车视图")
+public class CartVo implements Serializable {
 
     @TableId(type = IdType.ASSIGN_ID)
-    @Schema(description = "SKU ID")
+    @Schema(description = "ID")
     private String id;
+    /**
+     * 商品名称
+     */
+    @Schema(description = "商品名称")
+    private String productName;
     /**
      * 商品ID
      */
     @Schema(description = "商品ID")
     private String productId;
     /**
+     * 主图
+     */
+    @Schema(description = "主图")
+    private String mainImg;
+    /**
      * SKU名称
      */
     @Schema(description = "SKU名称")
-    private String name;
-    /**
-     * SKU编码
-     */
-    @Schema(description = "SKU编码")
-    private String skuCode;
+    private String skuName;
     /**
      * 价格
      */
@@ -52,31 +58,25 @@ public class BusSku implements Serializable {
     @Schema(description = "原价")
     private BigDecimal originalPrice;
     /**
-     * 库存
+     * 购买数量
      */
-    @Schema(description = "库存")
-    private Integer stock;
+    @Schema(description = "购买数量")
+    private Integer quantity;
     /**
-     * 库存预警值
+     * 状态
      */
-    @Schema(description = "库存预警值")
-    private Integer warningStock;
+    @Schema(description = "状态")
+    private Integer status;
     /**
-     * sku图片
+     * 用户ID
      */
-    @Schema(description = "sku图片")
-    private String image;
+    @Schema(description = "用户ID")
+    private String userId;
     /**
-     * 是否为默认SKU
+     *
      */
-    @Schema(description = "是否为默认SKU")
-    private Boolean isDefault;
-    /**
-     * 1-启用 0-禁用
-     */
-    @Schema(description = "1-启用 0-禁用")
-    private Boolean status;
+    @Schema(description = "创建时间")
+    private Date createTime;
     @TableLogic
-    @Schema(description = "删除标记")
     private Boolean delFlag;
 }
