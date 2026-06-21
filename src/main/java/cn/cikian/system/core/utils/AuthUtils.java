@@ -1,9 +1,7 @@
-package cn.cikian.system.sys.utils;
+package cn.cikian.system.core.utils;
 
 
 import cn.cikian.system.sys.entity.dto.LoginUser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

@@ -1,140 +1,94 @@
 package cn.cikian.system.core.service;
 
+import cn.cikian.system.core.exception.CikException;
+import cn.cikian.system.core.utils.UserRoleApi;
 import cn.cikian.system.sys.entity.SysUser;
 import cn.cikian.system.sys.entity.dto.LoginUser;
-import cn.cikian.system.sys.mapper.SysRoleMapper;
+import cn.cikian.system.sys.entity.enmu.BizCode;
 import cn.cikian.system.sys.mapper.SysUserMapper;
-import cn.cikian.system.sys.mapper.SysUserRoleMapper;
-import cn.cikian.system.sys.utils.UserRoleApi;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Cikian
- * @version 1.0
- * @implNote
+ * @version 1.1
+ * @implNote 在登录阶段一步到位加载全部角色与具体权限，拒绝后续请求的二次回表
  * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
- * @since 2026-01-28 16:13
  */
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UserDetailsServiceImpl implements UserDetailsService {
-    @Autowired
-    private SysUserMapper userMapper;
-    @Autowired
-    private SysRoleMapper roleMapper;
-    @Autowired
-    private SysUserRoleMapper userRoleMapper;
-    @Autowired
-    UserRoleApi userRoleApi;
+
+    private final SysUserMapper sysUserMapper;
+    private final UserRoleApi userRoleApi; // 注入重构后的角色权限API
 
     @Override
-    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
-        log.debug("加载用户: {}", usernameOrEmail);
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 1. 查询用户信息
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getUsername, username);
+        SysUser user = sysUserMapper.selectOne(queryWrapper);
 
-        // 首先尝试通过用户名查询用户
-        LambdaQueryWrapper<SysUser> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(SysUser::getUsername, usernameOrEmail);
-        SysUser user = userMapper.selectOne(lqw);
-
-        // 如果找不到，再尝试通过邮箱查询用户
         if (user == null) {
-            lqw = new LambdaQueryWrapper<>();
-            lqw.eq(SysUser::getEmail, usernameOrEmail);
-            user = userMapper.selectOne(lqw);
-            if (user == null) {
-                throw new UsernameNotFoundException("用户不存在: " + usernameOrEmail);
+            log.error("用户不存在: {}", username);
+            throw new UsernameNotFoundException("用户名或密码错误");
+        }
+
+        if (user.getStatus() != null) {
+            switch (user.getStatus()) {
+                case 2:
+                    throw new CikException(BizCode.USER_FREEZE); // 抛出冻结异常
+                case 3:
+                    throw new CikException(BizCode.USER_BANNED); // 抛出永久封禁异常
+                case 1:
+                    break; // 正常，放行
+                default:
+                    throw new CikException(BizCode.USER_DISABLED); // 其它未知禁用状态
             }
         }
 
-        // 检查用户状态
-        if (user.getStatus() != null && user.getStatus() == 2) {
-            throw new UsernameNotFoundException("用户已被禁用");
-        }
+        // 2. 一次性获取用户的所有权限与角色（这里将模拟逻辑改造为真实的合并注入）
+        List<String> totalPermissions = StreamAllAuthorities(user);
 
-        if (user.getStatus() != null && user.getStatus() == 3) {
-            throw new UsernameNotFoundException("用户已被锁定");
-        }
+        // 3. 封装成完整的 LoginUser 返回，后续框架会自动将其存入 Redis 缓存
+        return new LoginUser(user, totalPermissions);
+    }
 
+    /**
+     * 核心完善：合并获取用户的动态角色与操作权限，完全平替原有硬编码方法
+     */
+    private List<String> StreamAllAuthorities(SysUser user) {
+        Set<String> auths = new HashSet<>();
+        String userIdStr = String.valueOf(user.getId());
 
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        List<String> userPromission = userRoleApi.getUserPromission(user.getId());
-        for (String permission : userPromission) {
-            if (permission != null) {
-                authorities.add(new SimpleGrantedAuthority(permission));
+        // 1. 从数据库捞出该用户分配的所有合法 role_key (例如: [ADMIN, GOODS_ADMIN])
+        List<String> userRoles = userRoleApi.getUserRoles(userIdStr);
+
+        if (userRoles != null && !userRoles.isEmpty()) {
+            for (String roleKey : userRoles) {
+                // 统一为 Spring Security 注入带标准前缀的角色识别凭证
+                auths.add("ROLE_" + roleKey.toUpperCase().trim());
+            }
+
+            // 2. 根据捞出的角色列表，一次性批量捞出对应绑定的所有有效 permission_code
+            List<String> dbPermissions = userRoleApi.getUserPermissionsByRoles(userRoles);
+            if (dbPermissions != null && !dbPermissions.isEmpty()) {
+                auths.addAll(dbPermissions);
             }
         }
 
-        List<String> userRoles = userRoleApi.getUserRoles(user.getId());
-        for (String role : userRoles) {
-            if (role != null) {
-                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
-            }
-        }
-
-        return new LoginUser(user, authorities);
-    }
-
-    /**
-     * 获取用户权限
-     * 这里可以根据你的业务逻辑获取用户的角色和权限
-     */
-    private Collection<? extends GrantedAuthority> getAuthorities(SysUser user) {
-        Set<String> authorities = new HashSet<>();
-        String userRole = "ADMIN";
-        // 添加角色
-        authorities.add("ROLE_" + userRole.toUpperCase());
-
-        // 如果是管理员，添加额外权限
-        if ("ADMIN".equalsIgnoreCase(userRole)) {
-            authorities.addAll(getAdminAuthorities());
-        } else if ("USER".equalsIgnoreCase(userRole)) {
-            authorities.addAll(getUserAuthorities());
-        }
-
-        return authorities.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * 管理员权限
-     */
-    private Set<String> getAdminAuthorities() {
-        return Set.of(
-                "USER_READ", "USER_WRITE", "USER_DELETE",
-                "PRODUCT_READ", "PRODUCT_WRITE", "PRODUCT_DELETE",
-                "ORDER_READ", "ORDER_WRITE", "ORDER_DELETE",
-                "CATEGORY_READ", "CATEGORY_WRITE", "CATEGORY_DELETE",
-                "SYSTEM_CONFIG_READ", "SYSTEM_CONFIG_WRITE"
-        );
-    }
-
-    /**
-     * 普通用户权限
-     */
-    private Set<String> getUserAuthorities() {
-        return Set.of(
-                "PRODUCT_READ",
-                "CATEGORY_READ",
-                "ORDER_READ", "ORDER_WRITE",
-                "CART_READ", "CART_WRITE", "CART_DELETE",
-                "PROFILE_READ", "PROFILE_WRITE"
-        );
+        log.debug("用户 [{}] 登录成功，从数据库动态加载的 Authorities 授权总览: {}", user.getUsername(), auths);
+        return new ArrayList<>(auths);
     }
 }

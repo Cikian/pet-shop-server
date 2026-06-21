@@ -1,120 +1,104 @@
 package cn.cikian.system.core.security;
 
-import cn.cikian.system.core.utils.RedisCache;
+import cn.cikian.crydis.service.Crydis;
+import cn.cikian.system.core.enums.RedisConst;
+import cn.cikian.system.core.utils.JwtUtil;
 import cn.cikian.system.sys.entity.dto.LoginUser;
-import cn.cikian.system.sys.utils.JwtUtil;
-import cn.cikian.system.sys.utils.UserRoleApi;
+import cn.cikian.system.sys.entity.enmu.BizCode;
 import cn.hutool.core.util.StrUtil;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Objects;
 
 /**
  * @author Cikian
- * @version 1.0
- * @implNote
+ * @version 1.4
+ * @implNote 彻底移除了 userRoleApi 二次查表逻辑，全权信任 Redis 缓存的自闭环权限链路，大幅降低高并发下的响应耗时
  * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
- * @since 2026-01-28 16:07
  */
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    @Autowired
-    private RedisCache redisCache;
-    @Autowired
-    private UserRoleApi userRoleApi;
-
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 获取token
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+
+        // 1. 提取请求头中的 token
         String token = getJwtFromRequest(request);
-        if (token == null || token.isEmpty()) {
-            // 放行
+
+        if (StrUtil.isBlank(token)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if (token.startsWith("Bearer")) {
-            token = token.substring(7);
-        }
-        // 解析token
+        // 2. 解析 JWT 载荷
         String userId;
-        LoginUser loginTokenUser = null;
         try {
-            Claims claims = JwtUtil.parseJWT(token);
-            loginTokenUser = JwtUtil.getSubObject(token);
-            userId = loginTokenUser.getUser().getId();
-        } catch (Exception e) {
-            // token非法，直接放行，让后续的授权规则处理
+            LoginUser login = JwtUtil.getSubObject(token);
+            userId = login.getUser().getId();
+        } catch (NullPointerException | ExpiredJwtException e) {
+            request.setAttribute("FILTER_ERROR_CODE", BizCode.NEED_LOGIN);
+            filterChain.doFilter(request, response);
+            return;
+        } catch (JwtException e) {
+            request.setAttribute("FILTER_ERROR_CODE", BizCode.UNAUTHORIZED);
             filterChain.doFilter(request, response);
             return;
         }
-        // 从redis中获取用户信息
-        String redisKey = "login:" + userId;
-        LoginUser loginUser = redisCache.getCacheObject(redisKey, LoginUser.class);
-        if (Objects.isNull(loginUser)) {
-            // 用户未登录，直接放行，让后续的授权规则处理
-            filterChain.doFilter(request, response);
-            return;
-        }
-        // 存入SecurityContextHolder
-        // TODO 获取权限信息封装到Authentication中
-        Collection<? extends GrantedAuthority> authorities = loginUser.getAuthorities().isEmpty() ? userRoleApi.getSecurityAuthorities(userId) : loginUser.getAuthorities();
 
+        // 3. 核心改良：直接从 Redis 中获取携带完整角色及权限列表的实体
+        String redisKey = RedisConst.USER_LOGIN_PREFIX + userId;
+        LoginUser loginUser = Crydis.getObject(redisKey, LoginUser.class);
+
+        if (loginUser == null) {
+            request.setAttribute("FILTER_ERROR_CODE", BizCode.NEED_LOGIN);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 4. 直接获取内部包装后的 Authorities (内部已通过 permissions 纯字符串列表自动转换生成)
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(loginUser, null, authorities);
+                new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
+
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-        // 放行
+
+        // 5. 放行
         filterChain.doFilter(request, response);
     }
 
-
-    /**
-     * 从请求中提取 JWT
-     * 支持从以下位置获取：
-     * 1. Authorization header
-     * 2. Query parameter
-     */
     private String getJwtFromRequest(HttpServletRequest request) {
-        Enumeration<String> headerNames = request.getHeaderNames();
-        // 输出到控制台
-        // while (headerNames.hasMoreElements()) {
-        //     String headerName = headerNames.nextElement();
-        //     log.info("Header Name: {}", headerName);
-        //     log.info("Header Value: {}", request.getHeader(headerName));
-        // }
-
-        // 1. 从 Authorization header 获取
-        String token = request.getHeader("authorization");
-        if (token != null && !StrUtil.isBlank(token)) {
-            return token;
+        String token = request.getHeader("Authorization");
+        if (StrUtil.isBlank(token)) {
+            token = request.getHeader("authorization");
         }
-
-        // 2. 从 query parameter 获取
+        if (token != null && (token.trim().equalsIgnoreCase("undefined") || token.trim().equalsIgnoreCase("null") || token.trim().isEmpty())) {
+            token = null;
+        }
+        if (token != null && token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
         String tokenParam = request.getParameter("token");
-        if (StringUtils.hasText(tokenParam)) {
+        if (StringUtils.hasText(tokenParam) && !tokenParam.equalsIgnoreCase("undefined") && !tokenParam.equalsIgnoreCase("null")) {
             return tokenParam;
         }
-
         return null;
     }
 }

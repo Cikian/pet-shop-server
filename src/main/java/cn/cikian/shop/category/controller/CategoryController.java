@@ -1,20 +1,22 @@
 package cn.cikian.shop.category.controller;
 
 
+import cn.cikian.oss.service.OssServiceContext;
 import cn.cikian.shop.category.entity.BusCategory;
 import cn.cikian.shop.category.service.BusCategoryService;
-import cn.cikian.system.core.utils.OssUtils;
 import cn.cikian.system.sys.entity.vo.Result;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.net.URL;
 import java.util.Map;
 
 /**
@@ -25,10 +27,6 @@ import java.util.Map;
  * @since 2026-01-31 02:32
  */
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/cate")
@@ -37,7 +35,7 @@ public class CategoryController {
     @Autowired
     private BusCategoryService cateService;
     @Autowired
-    private OssUtils ossUtils;
+    private OssServiceContext ossUtils;
 
     @Operation(summary = "查询分类分页列表", description = "根据分页参数和查询条件查询分类分页列表")
     @GetMapping(value = "/list")
@@ -73,8 +71,8 @@ public class CategoryController {
             }
             try {
                 byte[] bytes = file.getBytes();
-                String fileUrl = ossUtils.upToOss("/petShop/category/" + originalFilename, bytes);
-                category.setImgUrl(fileUrl);
+                URL fileUrl = ossUtils.putObject("/petShop/catego" + originalFilename, bytes);
+                category.setImgUrl(fileUrl.toString());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -99,8 +97,8 @@ public class CategoryController {
             }
             try {
                 byte[] bytes = file.getBytes();
-                String fileUrl = ossUtils.upToOss("/petShop/category/" + originalFilename, bytes);
-                category.setImgUrl(fileUrl);
+                URL fileUrl = ossUtils.putObject("/petShop/category/" + originalFilename, bytes);
+                category.setImgUrl(fileUrl.toString());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

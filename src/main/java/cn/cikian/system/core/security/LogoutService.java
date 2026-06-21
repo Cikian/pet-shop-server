@@ -1,6 +1,8 @@
 package cn.cikian.system.core.security;
 
-import cn.cikian.system.sys.utils.JwtUtil;
+import cn.cikian.crydis.service.Crydis;
+import cn.cikian.system.core.enums.RedisConst;
+import cn.cikian.system.core.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +51,11 @@ public class LogoutService implements LogoutHandler {
 
             // TODO: 实现token黑名单机制
             // tokenBlacklistService.blacklistToken(jwt, username);
+            try {
+                Crydis.delete(RedisConst.USER_LOGIN_PREFIX + JwtUtil.getSubObject(jwt).getUser().getId());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
         // 清除安全上下文

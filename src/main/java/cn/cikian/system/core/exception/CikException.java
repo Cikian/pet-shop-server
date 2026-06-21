@@ -1,46 +1,87 @@
 package cn.cikian.system.core.exception;
 
-import cn.cikian.system.sys.entity.enmu.SysStatus;
-import lombok.Data;
+import cn.cikian.system.sys.entity.enmu.BizCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
+
+import java.io.Serial;
 
 /**
- * @author Cikian
- * @version 1.0
- * @implNote
- * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
- * @since 2026-02-10 01:25
+ * 业务异常类
+ * 用于处理业务逻辑中的异常情况
  */
+@Getter
+@Setter
+public class CikException extends InternalAuthenticationServiceException {
 
-public class CikException extends RuntimeException {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
+    /**
+     * 错误码
+     */
     private Integer code;
 
+    /**
+     * 错误消息
+     */
+    private String message;
+
+    /**
+     * 构造方法
+     *
+     * @param message 错误消息
+     */
     public CikException(String message) {
         super(message);
-        this.code = 500; // 默认错误码
-    }
-
-    public CikException(SysStatus sysStatus) {
-        super(sysStatus.message());
-        this.code = sysStatus.code(); // 默认错误码
-    }
-
-    public CikException(Integer code, String message) {
-        super(message);
-        this.code = code;
-    }
-
-    public CikException(String message, Throwable cause) {
-        super(message, cause);
+        this.message = message;
         this.code = 500;
     }
 
+    /**
+     * 构造方法
+     *
+     * @param code    错误码
+     * @param message 错误消息
+     */
+    public CikException(Integer code, String message) {
+        super(message);
+        this.code = code;
+        this.message = message;
+    }
+
+    /**
+     * 支持直接传入标准的 BizCode 枚举
+     */
+    public CikException(BizCode bizCode) {
+        super(bizCode.getDescription());
+        this.code = bizCode.getCode();
+        this.message = bizCode.getDescription();
+    }
+
+    /**
+     * 构造方法
+     *
+     * @param code    错误码
+     * @param message 错误消息
+     * @param cause   异常原因
+     */
     public CikException(Integer code, String message, Throwable cause) {
         super(message, cause);
         this.code = code;
+        this.message = message;
     }
 
-    public Integer getCode() {
-        return code;
+    /**
+     * 构造方法
+     *
+     * @param message 错误消息
+     * @param cause   异常原因
+     */
+    public CikException(String message, Throwable cause) {
+        super(message, cause);
+        this.message = message;
+        this.code = 500;
     }
 }

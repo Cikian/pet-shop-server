@@ -17,7 +17,7 @@ import java.util.Map;
  */
 @Getter
 @Schema(name = "HTTP状态码枚举")
-public enum SysStatus {
+public enum BizCode {
     // 1xx 信息性状态码
     CONTINUE(100, "Continue", "服务器已收到请求的初始部分，客户端可以继续发送剩余部分"),
     SWITCHING_PROTOCOLS(101, "Switching Protocols", "服务器同意切换协议，如从HTTP切换到WebSocket"),
@@ -45,8 +45,8 @@ public enum SysStatus {
     BAD_REQUEST(400, "Bad Request", "请求无效，服务器无法理解"),
     UNAUTHORIZED(401, "Unauthorized", "请求需要身份验证"),
     BAD_PWD(461, "Unauthorized", "密码错误"),
-    NO_USER(462, "Unauthorized", "用户名不存在，请检查用户名或邮箱输入是否正确"),
-    USER_BAD(463, "Unauthorized", "用户名或密码不正确"),
+    NO_USER(462, "Unauthorized", "用户名不存在"),
+    USER_BAD(463, "Unauthorized", "密码错误"),
     NEED_LOGIN(430, "Unauthorized", "登录过期，请重新登录"),
     PAYMENT_REQUIRED(402, "Payment Required", "保留状态码，用于未来的支付系统"),
     FORBIDDEN(403, "Forbidden", "服务器拒绝访问请求的资源"),
@@ -66,6 +66,10 @@ public enum SysStatus {
     EXPECTATION_FAILED(417, "Expectation Failed", "服务器无法满足Expect头的要求"),
     TOO_MANY_REQUESTS(429, "Too Many Requests", "客户端发送请求过于频繁"),
 
+    USER_FREEZE(403001, "User Frozen", "您的账号已被暂时冻结，请联系管理员"),
+    USER_BANNED(403002, "User Banned", "您的账号已被永久封禁"),
+    USER_DISABLED(403003, "User Disabled", "该账号已被禁用"),
+
     // 5xx 服务器错误状态码
     INTERNAL_SERVER_ERROR(500, "Internal Server Error", "服务器内部错误"),
     NOT_IMPLEMENTED(501, "Not Implemented", "服务器不支持请求的功能"),
@@ -83,15 +87,15 @@ public enum SysStatus {
     private final String description;
 
     // 用于快速查找
-    private static final Map<Integer, SysStatus> CODE_MAP = new HashMap<>();
+    private static final Map<Integer, BizCode> CODE_MAP = new HashMap<>();
 
     static {
-        for (SysStatus status : values()) {
+        for (BizCode status : values()) {
             CODE_MAP.put(status.code, status);
         }
     }
 
-    SysStatus(int code, String name, String description) {
+    BizCode(int code, String name, String description) {
         this.code = code;
         this.name = name;
         this.description = description;
@@ -102,7 +106,7 @@ public enum SysStatus {
      * @param code 状态码
      * @return HttpStatus枚举，如果不存在返回null
      */
-    public static SysStatus getByCode(int code) {
+    public static BizCode getByCode(int code) {
         return CODE_MAP.get(code);
     }
 

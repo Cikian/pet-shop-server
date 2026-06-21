@@ -43,19 +43,25 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
-@RequiredArgsConstructor
 public class SecurityConfig {
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtAuthenticationEntryPoint unauthorizedHandler;
+    private final AccessDeniedHandlerImpl accessDeniedHandler;
+    private final LogoutHandler logoutHandler;
+    private final UserDetailsService userDetailsService;
+
     @Autowired
-    private JwtAuthenticationFilter jwtAuthFilter;
-    @Autowired
-    private JwtAuthenticationEntryPoint unauthorizedHandler;
-    @Autowired
-    private AccessDeniedHandlerImpl accessDeniedHandler;
-    @Autowired
-    @Lazy
-    private UserDetailsService userDetailsService;
-    @Autowired
-    private LogoutHandler logoutHandler;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
+                          JwtAuthenticationEntryPoint unauthorizedHandler,
+                          AccessDeniedHandlerImpl accessDeniedHandler,
+                          LogoutHandler logoutHandler,
+                          @Lazy UserDetailsService userDetailsService) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.unauthorizedHandler = unauthorizedHandler;
+        this.accessDeniedHandler = accessDeniedHandler;
+        this.logoutHandler = logoutHandler;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -231,7 +237,9 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "http://127.0.0.1:3000",
                 "http://127.0.0.1:3001",
-                "http://127.0.0.1:5173"
+                "http://127.0.0.1:5173",
+                "http://192.168.18.39:5173",
+                "http://192.168.18.39:3000"
         ));
 
         // 允许的方法

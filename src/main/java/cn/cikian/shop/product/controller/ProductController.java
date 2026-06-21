@@ -1,40 +1,38 @@
 package cn.cikian.shop.product.controller;
 
 
+import cn.cikian.oss.service.OssServiceContext;
 import cn.cikian.shop.category.entity.BusTags;
 import cn.cikian.shop.category.entity.ProductTag;
 import cn.cikian.shop.category.service.BusTagsService;
 import cn.cikian.shop.category.service.ProductTagService;
+import cn.cikian.shop.product.entity.BusProduct;
 import cn.cikian.shop.product.entity.ProductImg;
 import cn.cikian.shop.product.entity.vo.AddProductVo;
 import cn.cikian.shop.product.entity.vo.Product4Detail;
+import cn.cikian.shop.product.entity.vo.ProductImgVo;
 import cn.cikian.shop.product.service.BusProductService;
 import cn.cikian.shop.product.service.ProductImgService;
+import cn.cikian.shop.sku.entity.BusSku;
+import cn.cikian.shop.sku.entity.SkuSpec;
 import cn.cikian.shop.sku.entity.vo.AddSkuVo;
 import cn.cikian.shop.sku.service.BusSkusService;
 import cn.cikian.shop.sku.service.SkuSpecsService;
-import cn.cikian.shop.spec.entity.vo.AddSpecVo;
-import cn.cikian.shop.product.entity.vo.ProductImgVo;
-import cn.cikian.shop.product.entity.BusProduct;
-import cn.cikian.shop.sku.entity.BusSku;
-import cn.cikian.shop.sku.entity.SkuSpec;
 import cn.cikian.shop.spec.entity.SpecKeys;
 import cn.cikian.shop.spec.entity.SpecValues;
+import cn.cikian.shop.spec.entity.vo.AddSpecVo;
 import cn.cikian.shop.spec.service.SpecKeysService;
 import cn.cikian.shop.spec.service.SpecValuesService;
 import cn.cikian.system.core.exception.CikException;
-import cn.cikian.system.core.utils.OssUtils;
-import cn.cikian.system.sys.entity.dto.LoginUser;
 import cn.cikian.system.sys.entity.vo.Result;
-import cn.cikian.system.sys.utils.AuthUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.upyun.UpException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +40,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,9 +51,6 @@ import java.util.stream.Collectors;
  * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
  * @since 2026-01-31 02:32
  */
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Slf4j
 @RestController
@@ -78,7 +74,7 @@ public class ProductController {
     @Autowired
     private ProductTagService pTagService;
     @Autowired
-    private OssUtils ossUtils;
+    private OssServiceContext ossUtils;
 
     @Operation(summary = "查询商品分页列表", description = "根据分页参数和查询条件查询商品分页列表")
     @GetMapping(value = "/list")
@@ -192,9 +188,9 @@ public class ProductController {
             }
             try {
                 byte[] bytes = mainImg.getBytes();
-                String fileUrl = ossUtils.upToOss("/petShop/product/" + imgName, bytes);
-                product.setMainImg(fileUrl);
-            } catch (IOException | UpException e) {
+                URL fileUrl = ossUtils.putObject("/petShop/product/" + imgName, bytes);
+                product.setMainImg(fileUrl.toString());
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -307,9 +303,9 @@ public class ProductController {
 
             try {
                 byte[] bytes = image.getBytes();
-                String fileUrl = ossUtils.upToOss("/petShop/sku/" + imgName, bytes);
-                busSku.setImage(fileUrl);
-            } catch (IOException | UpException e) {
+                URL fileUrl = ossUtils.putObject("/petShop/sku/" + imgName, bytes);
+                busSku.setImage(fileUrl.toString());
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
@@ -406,12 +402,12 @@ public class ProductController {
 
             try {
                 byte[] bytes = imgFile.getBytes();
-                String fileUrl = ossUtils.upToOss("/petShop/product/" + imgName, bytes);
-                pic.setImgUrl(fileUrl);
+                URL fileUrl = ossUtils.putObject("/petShop/product/" + imgName, bytes);
+                pic.setImgUrl(fileUrl.toString());
                 pic.setSortOrder(img.getSortOrder());
                 pic.setDescription(img.getDescription());
                 picList.add(pic);
-            } catch (IOException | UpException e) {
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -710,9 +706,9 @@ public class ProductController {
 
                 try {
                     byte[] bytes = image.getBytes();
-                    String fileUrl = ossUtils.upToOss("/petShop/sku/" + imgName, bytes);
-                    busSku.setImage(fileUrl);
-                } catch (IOException | UpException e) {
+                    URL fileUrl = ossUtils.putObject("/petShop/sku/" + imgName, bytes);
+                    busSku.setImage(fileUrl.toString());
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 

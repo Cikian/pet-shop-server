@@ -149,11 +149,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (user == null) {
             throw new UsernameNotFoundException("用户名不存在");
         }
-        // 构建权限列表
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        // TODO: 从数据库中查询用户的权限
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        // 构建LoginUser
-        return new LoginUser(user, authorities);
+
+        // 1. 构建字符串类型的权限/角色列表
+        List<String> permissions = new ArrayList<>();
+        // TODO: 从数据库中查询用户的权限字符串（如 "ROLE_USER", "sys:user:list"）
+        permissions.add("ROLE_USER");
+
+        // 2. 构建 LoginUser 实例
+
+        return new LoginUser(user, permissions);
     }
 }

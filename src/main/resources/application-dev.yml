@@ -44,7 +44,7 @@ spring:
   datasource:
     # 数据库连接配置
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/pet_shop?characterEncoding=UTF-8&useUnicode=true&useSSL=true&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://49.232.252.56:3306/pet_shop?characterEncoding=UTF-8&useUnicode=true&useSSL=true&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     # Druid 连接池配置
@@ -190,9 +190,24 @@ google-url:
   auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
 
 oss:
-  up-yun:
-    bucket-name: cikian
-    user-name: petshop
-    pwd: LfNekunjZInwqd96nP7sxldj1CST8Ots
-    file-path: /petShop
-    customer-uri: https://img-upyun.cikian.cn
+  enable: true
+  provider: upyun
+  endpoint: https://img-upyun.cikian.cn
+  access-key: petshop
+  secret-key: LfNekunjZInwqd96nP7sxldj1CST8Ots
+  bucket: cikian
+  expire: 3600
+  region: cn-beijing
+  object-dir-prefix: petShop
+
+crydis:
+  enable: true                    # 必须为 true 才会初始化
+  host: 127.0.0.1                 # Redis 服务器地址
+  port: 6379                      # Redis 端口，默认 6379
+  password:                       # Redis 密码，没有则留空
+  database: 0                     # 数据库索引，默认 0
+  timeout: 3000                   # 连接超时时间（毫秒）
+  max-active: 50                  # 最大连接数
+  max-idle: 10                    # 最大空闲连接
+  min-idle: 5                     # 最小空闲连接
+  max-wait: 3000                  # 最大等待时间（毫秒）

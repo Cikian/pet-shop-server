@@ -2,7 +2,7 @@ package cn.cikian.system.sys.entity.vo;
 
 
 import cn.cikian.system.sys.entity.enmu.CommonConstant;
-import cn.cikian.system.sys.entity.enmu.SysStatus;
+import cn.cikian.system.sys.entity.enmu.BizCode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -179,18 +179,18 @@ public class Result<T> implements Serializable {
         return r;
     }
 
-    public static <T> Result<T> error(SysStatus sysStatus) {
+    public static <T> Result<T> error(BizCode bizCode) {
         Result<T> r = new Result<T>();
-        r.setCode(sysStatus.code());
-        r.setMessage(sysStatus.message());
+        r.setCode(bizCode.code());
+        r.setMessage(bizCode.message());
         r.setSuccess(false);
         return r;
     }
 
-    public static <T> Result<T> error(SysStatus sysStatus, T data) {
+    public static <T> Result<T> error(BizCode bizCode, T data) {
         Result<T> r = new Result<T>();
-        r.setCode(sysStatus.code());
-        r.setMessage(sysStatus.message());
+        r.setCode(bizCode.code());
+        r.setMessage(bizCode.message());
         r.setResult(data);
         r.setSuccess(false);
         return r;

@@ -20,14 +20,25 @@ public class ShopServerApplication {
         Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
         // 将 .env 中的每一项放入系统属性，以便 Spring Boot 的 ${...} 可以读取
-        for (DotenvEntry entry : dotenv.entries()) {
-            System.out.println("环境变量["+ entry.getKey() + " = " +  entry.getValue() + "]");
-            System.setProperty(entry.getKey(), entry.getValue());
-        }
+//        for (DotenvEntry entry : dotenv.entries()) {
+//            System.out.println("环境变量["+ entry.getKey() + " = " +  entry.getValue() + "]");
+//            System.setProperty(entry.getKey(), entry.getValue());
+//        }
 
         SpringApplication.run(ShopServerApplication.class, args);
 
-        log.info("启动成功...");
+        log.info("\n----------------------------------------------------------\n" +
+                "\u001B[32m" +
+                "■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■\n" +
+                "■■■■■■■■■■■■■■■■■■■■■■■■" +
+                "\u001B[33m" +
+                "启动成功" +
+                "\u001B[0m" +
+                "\u001B[32m" +
+                "■■■■■■■■■■■■■■■■■■■■■■■■■■■\n" +
+                "■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■\n" +
+                "\u001B[0m" +
+                "----------------------------------------------------------");
     }
 
 }

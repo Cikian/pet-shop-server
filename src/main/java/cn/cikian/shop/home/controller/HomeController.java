@@ -8,15 +8,19 @@ import cn.cikian.shop.product.entity.HomeSlideshow;
 import cn.cikian.shop.product.entity.vo.HomeProductVo;
 import cn.cikian.shop.product.service.BusProductService;
 import cn.cikian.shop.product.service.HomeSlideshowService;
-import cn.cikian.system.core.utils.OssUtils;
 import cn.cikian.system.sys.entity.vo.Result;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
@@ -28,10 +32,6 @@ import java.util.Map;
  * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
  * @since 2026-01-31 02:32
  */
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController

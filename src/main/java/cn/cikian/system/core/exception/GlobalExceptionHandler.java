@@ -1,6 +1,6 @@
 package cn.cikian.system.core.exception;
 
-import cn.cikian.system.sys.entity.enmu.SysStatus;
+import cn.cikian.system.sys.entity.enmu.BizCode;
 import cn.cikian.system.sys.entity.vo.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
@@ -41,16 +41,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CikException.class)
     public Result<?> handleBusinessException(CikException e) {
         logger.error("业务异常: {}", e.getMessage(), e);
-        return Result.error(e.getCode() == null ? SysStatus.UNKNOW.code() : e.getCode(), e.getMessage(), e.getCause());
+        return Result.error(e.getCode() == null ? BizCode.UNKNOW.code() : e.getCode(), e.getMessage(), e.getCause());
     }
 
     /**
-     * 用户名或密码错误异常
+     * 密码错误异常
      */
     @ExceptionHandler(BadCredentialsException.class)
     public Result<?> handleBadCredentialsException(BadCredentialsException e) {
-        logger.error("用户名或密码错误: {}", e.getMessage());
-        return Result.error(SysStatus.USER_BAD, e.getCause());
+        logger.error("密码错误: {}", e.getMessage());
+        return Result.error(BizCode.USER_BAD, e.getCause());
     }
 
     /**
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsernameNotFoundException.class)
     public Result<?> handleUsernameNotFoundException(UsernameNotFoundException e) {
         logger.error("用户名不存在: {}", e.getMessage());
-        return Result.error(SysStatus.NO_USER, e.getCause());
+        return Result.error(BizCode.NO_USER, e.getCause());
     }
 
     /**
@@ -146,7 +146,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(RuntimeException.class)
     public Result<String> handleRuntimeException(RuntimeException e) {
-        logger.error("运行时异常: ", e);
-        return Result.error(500, "系统运行时异常: " + e.getMessage());
+        logger.error("系统异常: ", e);
+        return Result.error("系统异常: " + e.getMessage());
     }
 }

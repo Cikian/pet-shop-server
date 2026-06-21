@@ -1,7 +1,7 @@
 package cn.cikian.system.sys.controller;
 
+import cn.cikian.system.core.exception.CikException;
 import cn.cikian.system.sys.entity.vo.Result;
-import cn.cikian.system.sys.exception.CikException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,7 +1,9 @@
 package cn.cikian.system.sys.controller;
 
+import cn.cikian.crydis.service.Crydis;
+import cn.cikian.system.core.enums.RedisConst;
 import cn.cikian.system.core.exception.CikException;
-import cn.cikian.system.core.utils.RedisCache;
+import cn.cikian.system.core.utils.JwtUtil;
 import cn.cikian.system.sys.entity.SysUser;
 import cn.cikian.system.sys.entity.dto.LoginRequest;
 import cn.cikian.system.sys.entity.dto.LoginUser;
@@ -10,15 +12,11 @@ import cn.cikian.system.sys.entity.vo.LoginResponse;
 import cn.cikian.system.sys.entity.vo.Result;
 import cn.cikian.system.sys.entity.vo.UserVO;
 import cn.cikian.system.sys.service.SysUserService;
-import cn.cikian.system.sys.utils.JwtUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,20 +27,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.view.RedirectView;
@@ -75,8 +69,6 @@ public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
-    private RedisCache redisCache;
-    @Autowired
     private SysUserService userService;
     @Autowired
     private OAuth2AuthorizedClientService authorizedClientService;
@@ -100,7 +92,7 @@ public class AuthController {
         LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
         String userId = loginUser.getUser().getId();
         // authenticate存入redis
-        redisCache.setCacheObject("login:" + userId, loginUser);
+        Crydis.setObject(RedisConst.USER_LOGIN_PREFIX + userId, loginUser);
         // 生成token
         String accessToken = JwtUtil.createJWT(JSONObject.toJSONString(loginUser));
         // 获取权限
@@ -149,7 +141,7 @@ public class AuthController {
         LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
         String userId = loginUser.getUser().getId();
         // authenticate存入redis
-        redisCache.setCacheObject("login:" + userId, loginUser);
+        Crydis.setObject(RedisConst.USER_LOGIN_PREFIX + userId, loginUser);
         // 生成token
         String accessToken = JwtUtil.createJWT(JSONObject.toJSONString(loginUser));
         // 获取权限
@@ -197,7 +189,7 @@ public class AuthController {
         SecurityContextHolder.clearContext();
 
         String userid = loginUser.getUser().getId();
-        redisCache.deleteObject("login:" + userid);
+        Crydis.delete(RedisConst.USER_LOGIN_PREFIX + userid);
 
         return Result.OK("登出成功");
     }
@@ -357,7 +349,7 @@ public class AuthController {
         sysUser.setNickname(name);
         sysUser.setAvatar(picture);
 
-        return new LoginUser(sysUser);
+        return new LoginUser(sysUser, new ArrayList<>());
     }
 
 }

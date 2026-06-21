@@ -157,7 +157,7 @@ public class RoleController {
     @Operation(summary = "删除权限", description = "根据权限ID删除权限")
     @DeleteMapping("/deletePermission")
     public Result<String> deletePermission(@RequestParam(name = "id") String id) {
-        rolePermissionService.removeById(id);
+        permissionService.removeById(id);
         return Result.ok("删除成功");
     }
 

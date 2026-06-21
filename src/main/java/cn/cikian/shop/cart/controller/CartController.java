@@ -5,14 +5,11 @@ import cn.cikian.shop.cart.entity.BusCart;
 import cn.cikian.shop.cart.entity.CartVo;
 import cn.cikian.shop.cart.service.BusCartService;
 import cn.cikian.shop.cart.service.CartVoService;
-import cn.cikian.shop.category.entity.BusTags;
-import cn.cikian.shop.category.entity.ProductTag;
-import cn.cikian.shop.category.service.ProductTagService;
 import cn.cikian.system.core.exception.CikException;
 import cn.cikian.system.sys.entity.dto.LoginUser;
-import cn.cikian.system.sys.entity.enmu.SysStatus;
+import cn.cikian.system.sys.entity.enmu.BizCode;
 import cn.cikian.system.sys.entity.vo.Result;
-import cn.cikian.system.sys.utils.AuthUtils;
+import cn.cikian.system.core.utils.AuthUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -22,9 +19,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Cikian
@@ -52,7 +46,7 @@ public class CartController {
                                                 HttpServletRequest req) {
         LoginUser loginUser = AuthUtils.getLoginUser();
         if (loginUser == null) {
-            throw new CikException(SysStatus.NEED_LOGIN);
+            throw new CikException(BizCode.NEED_LOGIN);
         }
 
         LambdaQueryWrapper<CartVo> lqw = new LambdaQueryWrapper<>();
@@ -69,7 +63,7 @@ public class CartController {
     public Result<?> add(@RequestBody BusCart cart) {
         LoginUser loginUser = AuthUtils.getLoginUser();
         if (loginUser == null) {
-            throw new CikException(SysStatus.NEED_LOGIN);
+            throw new CikException(BizCode.NEED_LOGIN);
         }
 
         String userId = loginUser.getUser().getId();

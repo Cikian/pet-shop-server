@@ -1,48 +1,20 @@
 package cn.cikian.shop.product.controller;
 
 
-import cn.cikian.shop.category.entity.BusCategory;
-import cn.cikian.shop.category.entity.BusTags;
-import cn.cikian.shop.category.entity.ProductTag;
-import cn.cikian.shop.category.service.BusTagsService;
-import cn.cikian.shop.category.service.ProductTagService;
-import cn.cikian.shop.product.entity.BusProduct;
-import cn.cikian.shop.product.entity.HomeSlideshow;
-import cn.cikian.shop.product.entity.ProductImg;
+import cn.cikian.oss.service.OssServiceContext;
 import cn.cikian.shop.product.entity.Slideshow;
-import cn.cikian.shop.product.entity.vo.AddProductVo;
-import cn.cikian.shop.product.entity.vo.ProductImgVo;
 import cn.cikian.shop.product.service.BusProductService;
 import cn.cikian.shop.product.service.HomeSlideshowService;
-import cn.cikian.shop.product.service.ProductImgService;
 import cn.cikian.shop.product.service.SlideshowService;
-import cn.cikian.shop.sku.entity.BusSku;
-import cn.cikian.shop.sku.entity.SkuSpec;
-import cn.cikian.shop.sku.entity.vo.AddSkuVo;
-import cn.cikian.shop.sku.service.BusSkusService;
-import cn.cikian.shop.sku.service.SkuSpecsService;
-import cn.cikian.shop.spec.entity.SpecKeys;
-import cn.cikian.shop.spec.entity.SpecValues;
-import cn.cikian.shop.spec.entity.vo.AddSpecVo;
-import cn.cikian.shop.spec.service.SpecKeysService;
-import cn.cikian.shop.spec.service.SpecValuesService;
-import cn.cikian.system.core.utils.OssUtils;
 import cn.cikian.system.sys.entity.vo.Result;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.upyun.UpException;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.BeanUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.net.URL;
 
 /**
  * @author Cikian
@@ -51,10 +23,6 @@ import java.util.stream.Collectors;
  * @see <a href="https://www.cikian.cn">https://www.cikian.cn</a>
  * @since 2026-01-31 02:32
  */
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
@@ -68,7 +36,7 @@ public class SlideshowController {
     @Autowired
     private SlideshowService slideshowService;
     @Autowired
-    private OssUtils ossUtils;
+    private OssServiceContext ossUtils;
 
     @Operation(summary = "添加首页轮播图", description = "添加新的首页轮播图")
     @PostMapping
@@ -83,8 +51,8 @@ public class SlideshowController {
             }
             try {
                 byte[] bytes = file.getBytes();
-                String fileUrl = ossUtils.upToOss("/petShop/slideshow/" + originalFilename, bytes);
-                slideshow.setDisplayImg(fileUrl);
+                URL fileUrl = ossUtils.putObject("/petShop/slideshow/" + originalFilename, bytes);
+                slideshow.setDisplayImg(fileUrl.toString());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -95,9 +63,9 @@ public class SlideshowController {
         return Result.ok("添加成功！");
     }
 
-    @Operation(summary = "编辑首页轮播图", description = "根据ID编辑首页轮播图信息")
+    @Operation(summary = "删除首页轮播图", description = "根据ID删除首页轮播图信息")
     @PutMapping
-    public Result<?> edit(
+    public Result<?> delete(
             @RequestPart("data") Slideshow slideshow, // 接收 JSON 字符串并转为对象
             @RequestPart(value = "file", required = false) MultipartFile file // 设置 required=false
     ) {
@@ -109,8 +77,8 @@ public class SlideshowController {
             }
             try {
                 byte[] bytes = file.getBytes();
-                String fileUrl = ossUtils.upToOss("/petShop/slideshow/" + originalFilename, bytes);
-                slideshow.setDisplayImg(fileUrl);
+                URL fileUrl = ossUtils.putObject("/petShop/slideshow/" + originalFilename, bytes);
+                slideshow.setDisplayImg(fileUrl.toString());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -118,6 +86,13 @@ public class SlideshowController {
 
         // 2. 执行更新
         slideshowService.updateById(slideshow);
+        return Result.ok("编辑成功！");
+    }
+
+    @Operation(summary = "编辑首页轮播图", description = "根据ID编辑首页轮播图信息")
+    @DeleteMapping("/{id}")
+    public Result<?> edit(@PathVariable String id) {
+        slideshowService.removeById(id);
         return Result.ok("编辑成功！");
     }
 
